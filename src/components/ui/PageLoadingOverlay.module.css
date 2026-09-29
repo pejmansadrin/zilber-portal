@@ -1,0 +1,27 @@
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 20%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
+  pointer-events: all;
+  animation: fadeIn 0.15s ease-out;
+}
+
+:global(html.dark) .loadingOverlay,
+:global(html[data-theme="dark"]) .loadingOverlay {
+  background: rgb(0 0 0 / 25%);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

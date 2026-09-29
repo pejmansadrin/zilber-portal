@@ -1,26 +1,101 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --background: #f8fafc;
+  --foreground: #0f172a;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Zilber Tech Navy Design System Tokens */
+  --brand: #16214f;
+  --brand-hover: #0e1635;
+  --brand-subtle: #eef2ff;
+  --brand-accent: #2563eb;
+
+  --surface: #ffffff;
+  --surface-border: #e2e8f0;
+  --surface-muted: #f1f5f9;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #0284c7;
+
+  /* Glass surfaces shared by the portal's visual language. */
+  --glass-surface: rgb(255 255 255 / 78%);
+  --glass-border: rgb(255 255 255 / 85%);
+  --glass-shadow: 0 28px 80px rgb(17 45 92 / 16%);
+  --glass-blur: 24px;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: #090d16;
+    --foreground: #f1f5f9;
+
+    --brand: #2b3e8c;
+    --brand-hover: #384ea8;
+    --brand-subtle: #131c38;
+    --brand-accent: #3b82f6;
+
+    --surface: #111827;
+    --surface-border: #1f2937;
+    --surface-muted: #1e293b;
+
+    --glass-surface: rgb(15 25 45 / 75%);
+    --glass-border: rgb(255 255 255 / 15%);
+    --glass-shadow: 0 28px 80px rgb(2 10 22 / 50%);
   }
 }
 
+:root.dark, [data-theme="dark"] {
+  --background: #090d16;
+  --foreground: #f1f5f9;
+
+  --brand: #2b3e8c;
+  --brand-hover: #384ea8;
+  --brand-subtle: #131c38;
+  --brand-accent: #3b82f6;
+
+  --surface: #111827;
+  --surface-border: #1f2937;
+  --surface-muted: #1e293b;
+
+  --glass-surface: rgb(15 25 45 / 75%);
+  --glass-border: rgb(255 255 255 / 15%);
+  --glass-shadow: 0 28px 80px rgb(2 10 22 / 50%);
+}
+
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", "IRANSans", Tahoma, sans-serif;
+  direction: rtl;
+  text-align: right;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+}
+
+/* Suppress browser default white autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 5000000s ease-in-out 0s;
 }

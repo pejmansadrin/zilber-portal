@@ -1,0 +1,1079 @@
+/* ==========================================================================
+   Zilber Portal - Login Page
+   - Pure, un-effected background images with smooth theme cross-fade
+   - True Frosted Glassmorphism with prominent blur
+   - Floating labels that stand on the box's edge
+   - Password reveal smooth rotation & scale animation
+   - Centered forgot password button under password input
+   - Monocolor theme toggle & support icon buttons without dot
+   - Zero jump / shift on button clicks: thin colored halo ring instead
+   - Smooth opening AND closing transitions for all modals
+   ========================================================================== */
+
+.page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow: hidden;
+  direction: rtl;
+  font-family: inherit;
+  color: #0f172a;
+  transition: color 0.3s ease;
+}
+
+:global(html.dark) .page,
+:global(html[data-theme="dark"]) .page {
+  color: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .page {
+    color: #f8fafc;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Pure Background Image Layers (Zero filters, Zero artificial overlays)
+   -------------------------------------------------------------------------- */
+.bgLayerLight,
+.bgLayerDark {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.bgLayerLight {
+  opacity: 1;
+}
+
+.bgLayerDark {
+  opacity: 0;
+}
+
+:global(html.dark) .bgLayerLight,
+:global(html[data-theme="dark"]) .bgLayerLight {
+  opacity: 0;
+}
+
+:global(html.dark) .bgLayerDark,
+:global(html[data-theme="dark"]) .bgLayerDark {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .bgLayerLight {
+    opacity: 0;
+  }
+  :global(html:not(.light)) .bgLayerDark {
+    opacity: 1;
+  }
+}
+
+.bgImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* --------------------------------------------------------------------------
+   Card Layout & True Glassmorphism (High-blur, translucent)
+   -------------------------------------------------------------------------- */
+.formPanel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  z-index: 10;
+  animation: enterCard 0.3s ease-out backwards;
+}
+
+@keyframes enterCard {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.card {
+  position: relative;
+  padding: clamp(28px, 5.5vw, 38px);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 45%);
+  border: 1px solid rgb(255 255 255 / 75%);
+  box-shadow:
+    0 20px 45px -10px rgb(15 23 42 / 16%),
+    0 1px 1px rgb(255 255 255 / 90%) inset,
+    0 0 24px rgb(255 255 255 / 20%) inset;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+:global(html.dark) .card,
+:global(html[data-theme="dark"]) .card {
+  background: rgb(15 23 42 / 52%);
+  border-color: rgb(255 255 255 / 15%);
+  box-shadow:
+    0 25px 55px -12px rgb(0 0 0 / 70%),
+    0 1px 1px rgb(255 255 255 / 16%) inset,
+    0 0 24px rgb(0 0 0 / 20%) inset;
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .card {
+    background: rgb(15 23 42 / 52%);
+    border-color: rgb(255 255 255 / 15%);
+    box-shadow:
+      0 25px 55px -12px rgb(0 0 0 / 70%),
+      0 1px 1px rgb(255 255 255 / 16%) inset,
+      0 0 24px rgb(0 0 0 / 20%) inset;
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Brand Header
+   -------------------------------------------------------------------------- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.brandBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoImage {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  filter: drop-shadow(0 4px 10px rgb(22 33 79 / 15%));
+}
+
+:global(html.dark) .logoImage,
+:global(html[data-theme="dark"]) .logoImage {
+  filter: drop-shadow(0 4px 12px rgb(0 0 0 / 50%));
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .logoImage {
+    filter: drop-shadow(0 4px 12px rgb(0 0 0 / 50%));
+  }
+}
+
+.brandTitleWrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.brandName {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+  transition: color 0.3s ease;
+}
+
+:global(html.dark) .brandName,
+:global(html[data-theme="dark"]) .brandName {
+  color: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .brandName {
+    color: #f8fafc;
+  }
+}
+
+.brandSub {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #475569;
+  transition: color 0.3s ease;
+}
+
+:global(html.dark) .brandSub,
+:global(html[data-theme="dark"]) .brandSub {
+  color: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .brandSub {
+    color: #94a3b8;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: #0f172a;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+:global(html.dark) .title,
+:global(html[data-theme="dark"]) .title {
+  color: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .title {
+    color: #f8fafc;
+  }
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.7;
+  transition: color 0.3s ease;
+}
+
+:global(html.dark) .subtitle,
+:global(html[data-theme="dark"]) .subtitle {
+  color: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .subtitle {
+    color: #94a3b8;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Floating Label Form Fields
+   -------------------------------------------------------------------------- */
+.fields {
+  min-width: 0;
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.floatingField {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 50px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgb(255 255 255 / 80%);
+  background: rgb(255 255 255 / 75%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+:global(html.dark) .inputWrap,
+:global(html[data-theme="dark"]) .inputWrap {
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(15 23 42 / 65%);
+}
+
+.inputWrapFocused {
+  border-color: #2563eb;
+  background: rgb(255 255 255 / 98%);
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+:global(html.dark) .inputWrapFocused,
+:global(html[data-theme="dark"]) .inputWrapFocused {
+  border-color: #3b82f6;
+  background: rgb(15 23 42 / 92%);
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 40%);
+}
+
+.fieldIcon {
+  flex-shrink: 0;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.fieldIconFocused {
+  color: #2563eb;
+}
+
+:global(html.dark) .fieldIconFocused,
+:global(html[data-theme="dark"]) .fieldIconFocused {
+  color: #60a5fa;
+}
+
+.textInput {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0f172a;
+  font-size: 14px;
+  font-family: inherit;
+  border-radius: 10px;
+}
+
+:global(html.dark) .textInput,
+:global(html[data-theme="dark"]) .textInput {
+  color: #f8fafc;
+}
+
+/* --------------------------------------------------------------------------
+   Browser Autofill / Autocomplete Overrides (100% Transparent, No Color At All)
+   -------------------------------------------------------------------------- */
+.textInput:-webkit-autofill,
+.textInput:-webkit-autofill:hover,
+.textInput:-webkit-autofill:focus,
+.textInput:-webkit-autofill:active {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  transition: background-color 9999999s ease-in-out 0s !important;
+  background-color: transparent !important;
+}
+
+:global(html.dark) .textInput:-webkit-autofill,
+:global(html.dark) .textInput:-webkit-autofill:hover,
+:global(html.dark) .textInput:-webkit-autofill:focus,
+:global(html.dark) .textInput:-webkit-autofill:active,
+:global(html[data-theme="dark"]) .textInput:-webkit-autofill,
+:global(html[data-theme="dark"]) .textInput:-webkit-autofill:hover,
+:global(html[data-theme="dark"]) .textInput:-webkit-autofill:focus,
+:global(html[data-theme="dark"]) .textInput:-webkit-autofill:active {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  caret-color: #f8fafc !important;
+  transition: background-color 9999999s ease-in-out 0s !important;
+  background-color: transparent !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .textInput:-webkit-autofill,
+  :global(html:not(.light)) .textInput:-webkit-autofill:hover,
+  :global(html:not(.light)) .textInput:-webkit-autofill:focus,
+  :global(html:not(.light)) .textInput:-webkit-autofill:active {
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    caret-color: #f8fafc !important;
+    transition: background-color 9999999s ease-in-out 0s !important;
+    background-color: transparent !important;
+  }
+}
+
+/* Float label automatically when browser autofills */
+.textInput:-webkit-autofill ~ .floatingLabel,
+.inputWrap:has(input:-webkit-autofill) .floatingLabel {
+  top: 0;
+  transform: translateY(-50%);
+  right: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #ffffff;
+  padding: 0 6px;
+}
+
+:global(html.dark) .textInput:-webkit-autofill ~ .floatingLabel,
+:global(html.dark) .inputWrap:has(input:-webkit-autofill) .floatingLabel,
+:global(html[data-theme="dark"]) .textInput:-webkit-autofill ~ .floatingLabel,
+:global(html[data-theme="dark"]) .inputWrap:has(input:-webkit-autofill) .floatingLabel {
+  color: #e2e8f0;
+  background-color: #152238;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .textInput:-webkit-autofill ~ .floatingLabel,
+  :global(html:not(.light)) .inputWrap:has(input:-webkit-autofill) .floatingLabel {
+    color: #e2e8f0;
+    background-color: #152238;
+  }
+}
+
+/* The label that starts inside and floats up to stand on the edge */
+.floatingLabel {
+  position: absolute;
+  right: 38px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition:
+    top 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    right 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+:global(html.dark) .floatingLabel,
+:global(html[data-theme="dark"]) .floatingLabel {
+  color: #94a3b8;
+}
+
+.floatingLabelActive {
+  top: 0;
+  transform: translateY(-50%);
+  right: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #ffffff;
+}
+
+:global(html.dark) .floatingLabelActive,
+:global(html[data-theme="dark"]) .floatingLabelActive {
+  color: #e2e8f0;
+  background-color: #1e293b;
+}
+
+.inputWrapFocused .floatingLabelActive {
+  color: #2563eb;
+}
+
+:global(html.dark) .inputWrapFocused .floatingLabelActive,
+:global(html[data-theme="dark"]) .inputWrapFocused .floatingLabelActive {
+  color: #60a5fa;
+}
+
+/* --------------------------------------------------------------------------
+   Password Reveal Toggle Button (Smooth Scale & Rotate)
+   -------------------------------------------------------------------------- */
+.reveal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: -4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reveal:hover {
+  background: rgb(0 0 0 / 5%);
+  color: #0f172a;
+}
+
+:global(html.dark) .reveal:hover,
+:global(html[data-theme="dark"]) .reveal:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #f1f5f9;
+}
+
+/* Halo on click/active - ZERO jump */
+.reveal:active {
+  transform: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+.reveal:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+.revealIconWrap {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eyeIcon {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+}
+
+.eyeIconVisible {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.eyeIconHidden {
+  opacity: 0;
+  transform: scale(0.65) rotate(-25deg);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Forgot Password Button (Centered under password box)
+   -------------------------------------------------------------------------- */
+.forgotRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.forgotBtn {
+  border: 0;
+  background: transparent;
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: #1d4ed8;
+  font-size: 12.5px;
+  font-weight: 550;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+  transition: color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.forgotBtn:hover {
+  color: #1e40af;
+  text-decoration: underline;
+}
+
+:global(html.dark) .forgotBtn,
+:global(html[data-theme="dark"]) .forgotBtn {
+  color: #60a5fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .forgotBtn {
+    color: #60a5fa;
+  }
+}
+
+.forgotBtn:active {
+  transform: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+.forgotBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+/* --------------------------------------------------------------------------
+   Submit Button (No Jump, Thin Halo Ring on Active)
+   -------------------------------------------------------------------------- */
+.submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  margin-top: 20px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: #16214f;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 14px rgb(22 33 79 / 24%);
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+:global(html.dark) .submit,
+:global(html[data-theme="dark"]) .submit {
+  background: #2563eb;
+  box-shadow: 0 4px 16px rgb(37 99 235 / 35%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .submit {
+    background: #2563eb;
+    box-shadow: 0 4px 16px rgb(37 99 235 / 35%);
+  }
+}
+
+.submit:hover {
+  background: #1e2d63;
+  /* ZERO jump */
+  box-shadow: 0 6px 18px rgb(22 33 79 / 30%);
+}
+
+:global(html.dark) .submit:hover,
+:global(html[data-theme="dark"]) .submit:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 20px rgb(37 99 235 / 45%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .submit:hover {
+    background: #1d4ed8;
+    box-shadow: 0 6px 20px rgb(37 99 235 / 45%);
+  }
+}
+
+/* Thin colored halo ring on active - absolutely ZERO jump */
+.submit:active {
+  transform: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 50%);
+}
+
+.submit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 50%);
+}
+
+.arrowIcon {
+  transition: transform 0.2s ease;
+}
+
+.submit:hover .arrowIcon {
+  transform: translateX(-3px);
+}
+
+.fields:disabled .submit {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.fields:disabled input {
+  opacity: 0.7;
+}
+
+/* --------------------------------------------------------------------------
+   Alerts & Notifications
+   -------------------------------------------------------------------------- */
+.error,
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.error {
+  border: 1px solid #fecaca;
+  background: rgb(254 242 242 / 94%);
+  color: #991b1b;
+}
+
+:global(html.dark) .error,
+:global(html[data-theme="dark"]) .error {
+  border-color: rgb(239 68 68 / 30%);
+  background: rgb(69 10 10 / 50%);
+  color: #fca5a5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .error {
+    border-color: rgb(239 68 68 / 30%);
+    background: rgb(69 10 10 / 50%);
+    color: #fca5a5;
+  }
+}
+
+.notice {
+  border: 1px solid #fed7aa;
+  background: rgb(255 247 237 / 94%);
+  color: #9a3412;
+}
+
+:global(html.dark) .notice,
+:global(html[data-theme="dark"]) .notice {
+  border-color: rgb(249 115 22 / 30%);
+  background: rgb(67 20 7 / 50%);
+  color: #fdba74;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .notice {
+    border-color: rgb(249 115 22 / 30%);
+    background: rgb(67 20 7 / 50%);
+    color: #fdba74;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Bottom Center Monocolor Controls (Theme Toggle & Support without dot)
+   -------------------------------------------------------------------------- */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(0 0 0 / 6%);
+}
+
+:global(html.dark) .cardFooter,
+:global(html[data-theme="dark"]) .cardFooter {
+  border-top-color: rgb(255 255 255 / 7%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .cardFooter {
+    border-top-color: rgb(255 255 255 / 7%);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   Full-Page Viewport Blur Modal with Smooth Open & Close Transitions
+   -------------------------------------------------------------------------- */
+.fullPageModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 50%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease-out;
+}
+
+:global(html.dark) .fullPageModalBackdrop,
+:global(html[data-theme="dark"]) .fullPageModalBackdrop {
+  background: rgb(5 10 20 / 68%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .fullPageModalBackdrop {
+    background: rgb(5 10 20 / 68%);
+  }
+}
+
+.fullPageModalBackdropActive {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modalCard {
+  position: relative;
+  width: 100%;
+  max-width: 410px;
+  border-radius: 24px;
+  border: 1px solid rgb(255 255 255 / 85%);
+  background: rgb(255 255 255 / 90%);
+  padding: 26px;
+  box-shadow:
+    0 30px 70px -15px rgb(0 0 0 / 30%),
+    0 1px 1px rgb(255 255 255 / 95%) inset;
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global(html.dark) .modalCard,
+:global(html[data-theme="dark"]) .modalCard {
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(17 24 39 / 90%);
+  box-shadow:
+    0 35px 80px -15px rgb(0 0 0 / 70%),
+    0 1px 1px rgb(255 255 255 / 15%) inset;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .modalCard {
+    border-color: rgb(255 255 255 / 14%);
+    background: rgb(17 24 39 / 90%);
+    box-shadow:
+      0 35px 80px -15px rgb(0 0 0 / 70%),
+      0 1px 1px rgb(255 255 255 / 15%) inset;
+  }
+}
+
+.modalCardActive {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modalIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+:global(html.dark) .modalIconWrap,
+:global(html[data-theme="dark"]) .modalIconWrap {
+  background: rgb(30 58 138 / 35%);
+  border-color: rgb(30 58 138 / 50%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .modalIconWrap {
+    background: rgb(30 58 138 / 35%);
+    border-color: rgb(30 58 138 / 50%);
+  }
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+:global(html.dark) .modalTitle,
+:global(html[data-theme="dark"]) .modalTitle {
+  color: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .modalTitle {
+    color: #f8fafc;
+  }
+}
+
+.modalCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modalCloseBtn:hover {
+  background: rgb(0 0 0 / 6%);
+  color: #0f172a;
+}
+
+:global(html.dark) .modalCloseBtn:hover,
+:global(html[data-theme="dark"]) .modalCloseBtn:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #f8fafc;
+}
+
+.modalCloseBtn:active {
+  transform: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+.modalCloseBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 35%);
+}
+
+.modalDescription {
+  margin: 0 0 22px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: #334155;
+}
+
+:global(html.dark) .modalDescription,
+:global(html[data-theme="dark"]) .modalDescription {
+  color: #cbd5e1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .modalDescription {
+    color: #cbd5e1;
+  }
+}
+
+.modalSupportBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  border-radius: 13px;
+  background: #16214f;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgb(22 33 79 / 24%);
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modalSupportBtn:hover {
+  background: #1e2d63;
+}
+
+:global(html.dark) .modalSupportBtn,
+:global(html[data-theme="dark"]) .modalSupportBtn {
+  background: #2563eb;
+  box-shadow: 0 4px 16px rgb(37 99 235 / 35%);
+}
+
+:global(html.dark) .modalSupportBtn:hover,
+:global(html[data-theme="dark"]) .modalSupportBtn:hover {
+  background: #1d4ed8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(html:not(.light)) .modalSupportBtn {
+    background: #2563eb;
+  }
+  :global(html:not(.light)) .modalSupportBtn:hover {
+    background: #1d4ed8;
+  }
+}
+
+.modalSupportBtn:active {
+  transform: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 50%);
+}
+
+.modalSupportBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 50%);
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 20px 14px;
+  }
+  .card {
+    padding: 24px 18px;
+    border-radius: 22px;
+  }
+  .modalCard {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+  .formPanel,
+  .fullPageModalBackdrop,
+  .modalCard {
+    animation: none;
+  }
+  .bgLayerLight,
+  .bgLayerDark,
+  .inputWrap,
+  .submit,
+  .arrowIcon {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Full-Screen Blurred Loading Overlay (Keeps current page visible & blurred)
+   -------------------------------------------------------------------------- */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 20%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
+  pointer-events: all;
+  animation: fadeIn 0.15s ease-out;
+}
+
+:global(html.dark) .loadingOverlay,
+:global(html[data-theme="dark"]) .loadingOverlay {
+  background: rgb(0 0 0 / 25%);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
