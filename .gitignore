@@ -24,6 +24,8 @@
 .DS_Store
 *.pem
 /.aws
+/portal-release.tar.gz*
+__pycache__/
 
 # debug
 npm-debug.log*
