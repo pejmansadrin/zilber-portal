@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import PwaShell from "@/components/pwa/PwaShell";
+import { pwaBootstrap } from "@/lib/pwa-bootstrap";
 import StyledComponentsRegistry from "@/lib/styled-components-registry";
 import { PageLoadingProvider } from "@/components/ui/PageLoadingOverlay";
 import "./globals.css";
@@ -6,6 +8,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "پورتال سازمانی زیلبر | Zilber Portal",
   description: "سامانه یکپارچه خدمات کارکنان و ثبت حضور و غیاب شرکت زیلبر",
+  applicationName: "زیلبر",
+  appleWebApp: { capable: true, title: "زیلبر", statusBarStyle: "black-translucent" },
+  icons: { apple: "/pwa/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#16214f",
 };
 
 const themeScript = `
@@ -40,10 +49,11 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: pwaBootstrap }} />
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
         <StyledComponentsRegistry>
-          <PageLoadingProvider>{children}</PageLoadingProvider>
+          <PwaShell><PageLoadingProvider>{children}</PageLoadingProvider></PwaShell>
         </StyledComponentsRegistry>
       </body>
     </html>
