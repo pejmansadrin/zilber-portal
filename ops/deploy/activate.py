@@ -32,6 +32,23 @@ def health(port, metadata):
     return result.get("status") == "ok" and result.get("version") == metadata["version"] and result.get("commit") == metadata["commit"]
 
 
+def verify_https(metadata):
+    # nginx reload returns before its replacement workers accept connections.
+    # Old workers can still answer briefly; require the new identity within a
+    # bounded deadline before considering the traffic switch successful.
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        try:
+            result = json.loads(run("curl", "--fail", "--silent", "--show-error", "--max-time", "3",
+                                    "--resolve", "portal.zilber.tech:443:127.0.0.1", "https://portal.zilber.tech/api/health"))
+            if result.get("status") == "ok" and result.get("version") == metadata["version"] and result.get("commit") == metadata["commit"]:
+                return
+        except (RuntimeError, ValueError):
+            pass
+        time.sleep(0.25)
+    raise RuntimeError("HTTPS version verification failed")
+
+
 def activate(release, metadata):
     state_path = ROOT / "current.json"
     old = json.loads(state_path.read_text()) if state_path.exists() else None
@@ -72,10 +89,7 @@ def activate(release, metadata):
         try:
             run("nginx", "-t")
             run("systemctl", "reload", "nginx")
-            result = json.loads(run("curl", "--fail", "--silent", "--show-error", "--max-time", "15",
-                                    "--resolve", "portal.zilber.tech:443:127.0.0.1", "https://portal.zilber.tech/api/health"))
-            if result.get("version") != metadata["version"] or result.get("commit") != metadata["commit"]:
-                raise RuntimeError("HTTPS version verification failed")
+            verify_https(metadata)
         except Exception:
             UPSTREAM.write_bytes(previous_upstream)
             run("nginx", "-t")

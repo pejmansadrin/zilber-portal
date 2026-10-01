@@ -28,6 +28,7 @@ build:
     - npm explore sharp -- npm run build
     - node ops/qa/profile-photo.mjs
     - node ops/qa/pwa.mjs
+    - python3 ops/qa/deploy-health.py
     - npm run build
     - node ops/ci/package-release.mjs
   artifacts:
