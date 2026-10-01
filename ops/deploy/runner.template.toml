@@ -1,0 +1,18 @@
+# Merge into the registered runner's root-only config; authentication token stays there.
+concurrent = 1
+check_interval = 3
+
+[[runners]]
+  name = "zilber-portal-production"
+  url = "https://git.zilber.tech"
+  executor = "docker"
+  limit = 1
+  request_concurrency = 1
+  [runners.docker]
+    image = "node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6"
+    helper_image = "gitlab/gitlab-runner-helper:x86_64-v19.3.0@sha256:47b7976ad6aa1cf103ead2b453fdc67c13d16a2e3345d79f17f76b53bde50632"
+    privileged = false
+    memory = "3g"
+    cpus = "2"
+    pull_policy = ["if-not-present"]
+    volumes = ["/cache"]

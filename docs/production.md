@@ -17,6 +17,8 @@ Stable tags must match `vMAJOR.MINOR.PATCH` (for example `v0.1.1`). Tags `v*` ar
 
 Builds run in non-privileged Docker containers with no host Docker socket, one job at a time, 3GiB memory and two CPUs. The runner manager alone mounts Docker's socket. The runner is locked to this project and protected refs, does not accept untagged jobs, and uses pinned Node 24 and Runner 19.3 images.
 
+Runner recovery specifications are in `ops/deploy/runner.compose.yml` and `ops/deploy/runner.template.toml`. Preserve the registered authentication token in the root-only `/opt/gitlab-runner/config/config.toml`. The official version-matched helper image is pinned from Docker Hub because this host cannot reach `registry.gitlab.com`; upgrading Runner also requires upgrading the helper image.
+
 ## Host and activation
 
 Host: `158.255.74.30`. Root-owned deployment helper: `/usr/local/sbin/zilber-portal-activate`, sourced from `ops/deploy/activate.py`. Production releases and state are in `/opt/zilber-portal`; runtime configuration is `/opt/zilber-portal/secrets/runtime.env` (root-only). The dedicated `portal-ci` SSH key is restricted to running the helper with no arguments. Host identity is pinned from an already authenticated administrative SSH session.
@@ -46,12 +48,14 @@ Protected GitLab project variables:
 
 Only the two public Supabase configuration values are supplied at build time and on the runtime host. No service-role key, database password or employee credentials are included in artifacts. No database reset, local seed or automatic schema migration runs during deployment. The existing cloud schema and RLS remain authoritative; review future migrations separately before application releases.
 
+This host exposes a baseline KVM CPU without SSE4.2. The pinned `@img/sharp-wasm32` package provides Sharp's official fallback on this CPU; native Sharp remains available on supported machines. The standalone trace explicitly includes the Wasm package and its runtime. CI exercises actual JPEG/PNG/WebP processing, orientation, compression and invalid-file rejection before deploying.
+
 `/api/health` returns status, deployed version and commit without user information. It checks application configuration; it does not claim database availability. Account requests retain session checks and ownership/RLS.
 
 ## GitLab email notifications
 
 The existing verified SMTP configuration uses `mail.zilber.tech:465`, TLS with certificate verification, sender `git@zilber.tech`. All existing active human users have custom notification events and notifications for their own activity enabled. Existing project overrides are also updated. Push/tag and pipeline email integrations include all five current users in every existing project, every branch, all successful/failed pipelines, and repeated results. Release, issue, comment and merge-request notifications follow each user's project access.
 
-GitLab users can later change their preferences. New users or projects must be added to the integration recipients/configuration; this setup is not an automatic user-provisioning hook. GitLab emits supported events, not an email for every page view or button click. SMTP acceptance confirms outbound delivery to the mail server, not Inbox/Spam placement. A root-only pre-change notification settings backup is stored in GitLab's data directory.
+GitLab users can later change their preferences. New users or projects must be added to the integration recipients/configuration; this setup is not an automatic user-provisioning hook. GitLab emits supported events, not an email for every page view or button click. SMTP acceptance confirms outbound delivery to the mail server, not Inbox/Spam placement. The root-only pre-change notification settings backup is `/opt/zilber-portal/backups/gitlab-notifications-before.json`.
 
 Relevant upstream references: [runner registration](https://docs.gitlab.com/runner/register/), [pipeline status email](https://docs.gitlab.com/user/project/integrations/pipeline_status_emails/), [push/tag email](https://docs.gitlab.com/user/project/integrations/emails_on_push/), [notification events](https://docs.gitlab.com/user/profile/notifications/).

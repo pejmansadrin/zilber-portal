@@ -1,0 +1,15 @@
+services:
+  runner:
+    image: gitlab/gitlab-runner:alpine-v19.3.0@sha256:0dfd45aafbd125c3d2ef31e1a57f585ac6eea32f69135cbf45af978700f6a5de
+    container_name: zilber-portal-runner
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    volumes:
+      - /opt/gitlab-runner/config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
