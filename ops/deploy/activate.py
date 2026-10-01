@@ -20,7 +20,10 @@ IMAGE = "zilber-portal-node-runtime:24-vips8.18.6"
 
 
 def run(*args):
-    return subprocess.check_output(args, stderr=subprocess.STDOUT).decode().strip()
+    try:
+        return subprocess.check_output(args, stderr=subprocess.STDOUT).decode().strip()
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"{' '.join(args[:2])}: {error.output.decode().strip()}") from None
 
 
 def health(port, metadata):
@@ -37,6 +40,8 @@ def activate(release, metadata):
         return
     port = 3302 if old and old["port"] == 3301 else 3301
     name = f"zilber-portal-{port}"
+    # Docker cannot create a tmpfs mountpoint inside a read-only bind mount.
+    (release / ".next/cache").mkdir(parents=True, exist_ok=True)
     subprocess.run(["docker", "rm", "-f", name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     run("docker", "run", "-d", "--name", name, "--restart", "unless-stopped", "--init",
         "--user", "1000:1000", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",

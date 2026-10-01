@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 const root = ".next/standalone";
 fs.cpSync("public", `${root}/public`, { recursive: true });
 fs.cpSync(".next/static", `${root}/.next/static`, { recursive: true });
+fs.mkdirSync(`${root}/.next/cache`, { recursive: true });
 // Environment files can be traced by Next; configuration belongs on the host.
 for (const name of fs.readdirSync(root)) if (name.startsWith(".env")) fs.rmSync(`${root}/${name}`);
 fs.writeFileSync(`${root}/portal-release.json`, JSON.stringify({
