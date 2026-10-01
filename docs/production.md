@@ -9,13 +9,15 @@ Push changes to `main` first. The main pipeline checks photo processing and buil
 ```sh
 git switch main
 git pull --ff-only
-git tag -s v0.1.1 -m 'Release v0.1.1'
-git push origin v0.1.1
+git tag -s v0.1.2 -m 'Release v0.1.2'
+git push origin v0.1.2
 ```
 
 Stable tags must match `vMAJOR.MINOR.PATCH` (for example `v0.1.1`). Tags `v*` are protected and only Maintainers can create them. A protected project runner builds each version from `npm ci`, creates a standalone artifact with checksum, deploys it, checks the public HTTPS version/assets/auth redirect, then publishes a GitLab Release. The production environment and pipeline expose the deployment links. Failed builds never run deployment. Never move or reuse a version tag; job retries may reactivate only the identical artifact.
 
 Builds run in non-privileged Docker containers with no host Docker socket, one job at a time, 3GiB memory and two CPUs. The runner manager alone mounts Docker's socket. The runner is locked to this project and protected refs, does not accept untagged jobs, and uses pinned Node 24 and Runner 19.3 images.
+
+Dependency installation has a separate 768MiB Node heap limit and four network sockets to keep installation within the job's memory budget. The application uses Supabase; unused Prisma client/CLI packages have been removed from the dependency graph.
 
 Runner recovery specifications are in `ops/deploy/runner.compose.yml` and `ops/deploy/runner.template.toml`. Preserve the registered authentication token in the root-only `/opt/gitlab-runner/config/config.toml`. The official version-matched helper image is pinned from Docker Hub because this host cannot reach `registry.gitlab.com`; upgrading Runner also requires upgrading the helper image.
 

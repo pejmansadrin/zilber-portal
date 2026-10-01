@@ -24,7 +24,7 @@ build:
       files: [package-lock.json]
     paths: [.npm/]
   script:
-    - npm ci --prefer-offline --no-audit --no-fund
+    - NODE_OPTIONS=--max-old-space-size=768 npm ci --maxsockets=4 --prefer-offline --no-audit --no-fund
     - npm explore sharp -- npm run build
     - node ops/qa/profile-photo.mjs
     - npm run build
