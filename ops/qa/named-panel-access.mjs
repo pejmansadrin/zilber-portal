@@ -46,7 +46,7 @@ for (const credential of credentials) {
     if (!expected) {
       assert(html.includes("شما به پنل سوپرادمین دسترسی ندارید."));
       // Call the action directly, without relying on visibility of its form.
-      const manifest = JSON.parse(fs.readFileSync(".next/dev/server/server-reference-manifest.json", "utf8"));
+      const manifest = JSON.parse(fs.readFileSync(process.env.ZILBER_QA_ACTION_MANIFEST || ".next/dev/server/server-reference-manifest.json", "utf8"));
       const actionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "saveOrganization")?.[0]; assert(actionId);
       const response = await fetch(base + "/people", { method: "POST", headers: { ...headers, origin: base, "Next-Action": actionId },
         body: await encodeReply([3, "employees", { ok: false, message: "" }, new FormData()]),

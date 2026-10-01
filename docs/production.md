@@ -43,8 +43,8 @@ Protected GitLab project variables:
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Environment | Existing cloud project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Masked environment | Public application key |
-| `PORTAL_DEPLOY_KEY` | File | Restricted private deployment key |
-| `PORTAL_SSH_KNOWN_HOSTS` | File | Pinned host public key |
+| `PORTAL_DEPLOY_KEY` | File, production scope | Restricted private deployment key |
+| `PORTAL_SSH_KNOWN_HOSTS` | File, production scope | Pinned host public key |
 
 Only the two public Supabase configuration values are supplied at build time and on the runtime host. No service-role key, database password or employee credentials are included in artifacts. No database reset, local seed or automatic schema migration runs during deployment. The existing cloud schema and RLS remain authoritative; review future migrations separately before application releases.
 
@@ -70,3 +70,9 @@ The existing verified SMTP configuration uses `mail.zilber.tech:465`, TLS with c
 GitLab users can later change their preferences. New users or projects must be added to the integration recipients/configuration; this setup is not an automatic user-provisioning hook. GitLab emits supported events, not an email for every page view or button click. SMTP acceptance confirms outbound delivery to the mail server, not Inbox/Spam placement. The root-only pre-change notification settings backup is `/opt/zilber-portal/backups/gitlab-notifications-before.json`.
 
 Relevant upstream references: [runner registration](https://docs.gitlab.com/runner/register/), [pipeline status email](https://docs.gitlab.com/user/project/integrations/pipeline_status_emails/), [push/tag email](https://docs.gitlab.com/user/project/integrations/emails_on_push/), [notification events](https://docs.gitlab.com/user/profile/notifications/).
+
+Administrator maintenance: `ops/deploy/enable-gitlab-notifications.rb` runs inside the GitLab container with `gitlab-rails runner`. It reconciles current users/projects without sending test email by default. Set `PORTAL_NOTIFICATION_TEST=1` only when explicit test delivery is needed. Preserve the original root-only backup before subsequent runs.
+
+## Verification
+
+Read-only production photo QA uses `ops/qa/profile-photo-display.mjs` with `ZILBER_QA_BASE_URL=https://portal.zilber.tech` and a private credential-file path. `ops/qa/named-panel-access.mjs` also verifies all seven portal accounts, the two named super-admins, and direct Server Action rejection for the other five. For production, set `ZILBER_QA_ACTION_MANIFEST` to a private copy of the deployed release's `.next/server/server-reference-manifest.json`; action IDs belong to the deployed build, not the local development server. Never publish that manifest or credential file.
