@@ -1,3 +1,6 @@
+.surface { composes: glass-surface from global; }
+.completionCard { composes: glass-surface from global; }
+
 .pageHeading {
   display: flex;
   justify-content: space-between;
@@ -47,19 +50,18 @@
   font-weight: 600;
 }
 .surface {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 25px;
-  box-shadow:
-    0 12px 30px -22px rgb(29 49 88 / 18%),
-    0 1px 0 rgb(255 255 255 / 60%) inset;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.22s ease,
+    background-color 0.22s ease;
 }
 :global(html.dark) .surface {
-  box-shadow:
-    0 12px 30px -22px rgb(0 0 0 / 35%),
-    0 1px 0 rgb(255 255 255 / 4%) inset;
+  border: 1px solid var(--glass-border);
+
 }
 .overview {
   display: grid;
@@ -72,6 +74,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+.welcome:only-child {
+  grid-column: 1 / -1;
 }
 .welcome::before {
   content: "";
@@ -169,12 +174,12 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: linear-gradient(140deg, #1d315d, #142343);
-  border: 1px solid rgb(130 158 206 / 32%);
+
+  border: 1px solid var(--glass-border);
   border-radius: 25px;
   color: #f1f5ff;
   padding: 27px 28px 0;
-  box-shadow: 0 18px 40px -25px rgb(19 36 71 / 60%);
+
 }
 .completionCard::before {
   content: "";
@@ -183,14 +188,10 @@
   inset: 0;
   background: radial-gradient(
     ellipse at 0 0,
-    rgb(150 185 235 / 12%),
+    rgb(150 185 235 / 15%),
     transparent 65%
   );
   pointer-events: none;
-}
-:global(html.dark) .completionCard {
-  background: linear-gradient(140deg, #22365b, #18294b);
-  border-color: rgb(161 186 228 / 24%);
 }
 .completionTop {
   display: flex;
@@ -369,9 +370,21 @@
     box-shadow 0.2s;
 }
 .tool:hover {
-  transform: translateY(-3px);
-  border-color: rgb(97 130 184 / 46%);
-  box-shadow: 0 18px 35px -23px rgb(40 70 120 / 30%);
+  transform: translateY(-4px);
+  background: rgb(255 255 255 / 80%);
+  border-color: rgb(255 255 255 / 95%);
+  box-shadow:
+    0 22px 50px -18px rgb(37 99 235 / 16%),
+    0 1px 1px 0 rgb(255 255 255 / 100%) inset,
+    0 0 0 1px rgb(255 255 255 / 60%) inset;
+}
+:global(html.dark) .tool:hover {
+  background: rgb(22 36 62 / 80%);
+  border-color: rgb(59 130 246 / 35%);
+  box-shadow:
+    0 24px 55px -18px rgb(0 0 0 / 70%),
+    0 1px 1px 0 rgb(255 255 255 / 22%) inset,
+    0 0 0 1px rgb(255 255 255 / 8%) inset;
 }
 .toolTop {
   display: flex;
@@ -760,8 +773,9 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  .welcomeActions > a:first-child {
+  .welcomeActions > .primaryAction {
     width: 100%;
+    box-sizing: border-box;
   }
   .textLink {
     align-self: center;
@@ -836,5 +850,148 @@
   }
   .upcomingBadge {
     margin-inline-start: 28px;
+  }
+}
+@media (max-width: 380px) {
+  .pageHeading {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .pageHeading h1 {
+    font-size: 22px;
+    letter-spacing: -0.4px;
+  }
+  .pageHeading .eyebrow {
+    max-width: 150px;
+    line-height: 1.7;
+  }
+  .date {
+    max-width: 108px;
+    padding-top: 4px;
+  }
+  .date div {
+    min-width: 0;
+  }
+  .date div > span,
+  .date time {
+    overflow-wrap: anywhere;
+  }
+  .welcome {
+    padding-inline: 16px;
+  }
+  .identity {
+    gap: 10px;
+  }
+  .identity > span {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    font-size: 20px;
+  }
+  .identity h2 {
+    font-size: 21px;
+  }
+  .completionCard {
+    padding-inline: 17px;
+  }
+  .completionRing {
+    width: 70px;
+    height: 70px;
+  }
+  .completionRing > span {
+    font-size: 22px;
+  }
+  .tool {
+    padding: 18px 16px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+  .toolIcon {
+    width: 40px;
+    height: 40px;
+  }
+  .tool > p {
+    overflow-wrap: anywhere;
+  }
+  .quickAccess {
+    padding: 17px 15px;
+  }
+  .upcoming p {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.completionCard {
+  --glass-tint: rgb(20 37 67 / 76%);
+  --glass-highlight: rgb(255 255 255 / 22%);
+}
+.welcome .primaryAction {
+  box-sizing: border-box;
+}
+
+@media (max-width: 680px) {
+  .welcome {
+    padding: 16px 16px 0;
+  }
+  .welcome .identity {
+    gap: 10px;
+  }
+  .welcome .identity > span {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .welcome .identity h2 {
+    font-size: 20px;
+    line-height: 1.5;
+  }
+  .welcome .identity .eyebrow {
+    font-size: 10px;
+    line-height: 1.5;
+    margin-bottom: 2px;
+  }
+  .welcome .role {
+    font-size: 11px;
+    line-height: 1.6;
+    margin-top: 2px;
+  }
+  .welcome .welcomeText {
+    font-size: 12px;
+    line-height: 1.8;
+    margin-top: 12px;
+  }
+  .welcome .welcomeActions {
+    margin: 12px 0;
+    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .welcome .primaryAction {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 11px;
+  }
+  .welcome .textLink {
+    min-height: 32px;
+    font-size: 11px;
+    align-self: center;
+  }
+  .welcome .accountLine {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    font-size: 9px;
+  }
+  .welcome .accountLine span:last-child {
+    font-size: 9px;
+    text-align: left;
+    line-height: 1.6;
   }
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/glass.css";
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 :root {
@@ -21,10 +22,12 @@
   --info: #0284c7;
 
   /* Glass surfaces shared by the portal's visual language. */
-  --glass-surface: rgb(255 255 255 / 78%);
+  --glass-surface: rgb(243 247 255 / 68%);
   --glass-border: rgb(255 255 255 / 85%);
   --glass-shadow: 0 28px 80px rgb(17 45 92 / 16%);
-  --glass-blur: 24px;
+  --glass-blur: 32px;
+  --glass-saturation: 150%;
+  --glass-highlight: rgb(255 255 255 / 55%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,7 +44,8 @@
     --surface-border: #1f2937;
     --surface-muted: #1e293b;
 
-    --glass-surface: rgb(15 25 45 / 75%);
+    --glass-surface: rgb(17 29 49 / 72%);
+  --glass-highlight: rgb(255 255 255 / 14%);
     --glass-border: rgb(255 255 255 / 15%);
     --glass-shadow: 0 28px 80px rgb(2 10 22 / 50%);
   }
@@ -60,7 +64,8 @@
   --surface-border: #1f2937;
   --surface-muted: #1e293b;
 
-  --glass-surface: rgb(15 25 45 / 75%);
+  --glass-surface: rgb(17 29 49 / 72%);
+  --glass-highlight: rgb(255 255 255 / 14%);
   --glass-border: rgb(255 255 255 / 15%);
   --glass-shadow: 0 28px 80px rgb(2 10 22 / 50%);
 }

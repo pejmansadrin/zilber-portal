@@ -14,6 +14,7 @@ export type Field = {
     | "url";
   required?: boolean;
   options?: string[];
+  choices?: { value: string; label: string }[];
   max?: number;
   dir?: "ltr";
 };
@@ -436,6 +437,37 @@ export const completionFields = [
   "postal_code",
   "photo_storage_path",
 ];
+export const profileChecklist = [
+  {
+    label: "مشخصات فردی",
+    fields: ["first_name", "last_name", "birth_date", "national_id"],
+    section: "identity",
+  },
+  {
+    label: "اطلاعات تماس و نشانی",
+    fields: [
+      "mobile_phone",
+      "personal_email",
+      "city",
+      "address_line_1",
+      "postal_code",
+    ],
+    section: "contact",
+  },
+  {
+    label: "تصویر حساب",
+    fields: ["photo_storage_path"],
+    section: "identity",
+  },
+] as const;
+
+export function getProfileChecklist(employee: Record<string, unknown>) {
+  return profileChecklist.map((item) => ({
+    ...item,
+    complete: item.fields.every((field) => Boolean(employee[field])),
+  }));
+}
+
 export function profileCompletion(employee: Record<string, unknown>) {
   return Math.round(
     (completionFields.filter((key) => Boolean(employee[key])).length /

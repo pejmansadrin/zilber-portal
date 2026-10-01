@@ -4,9 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { collections } from "@/lib/account-fields";
 import type { EmployeeRecord, EmployeeTables } from "@/types/employee";
-
-// In-memory cache for storage signed URLs to avoid slow roundtrips on every request
-const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+import { profilePhotoHref } from "@/lib/profile-photo";
 
 export const getAccount = cache(async () => {
   const client = await createClient();
@@ -21,28 +19,11 @@ export const getAccount = cache(async () => {
     .maybeSingle();
   if (error)
     throw new Error("دریافت اطلاعات حساب انجام نشد. لطفاً دوباره تلاش کنید.");
-  let avatar: string | null = null;
   const photoPath = employee?.photo_storage_path;
-  if (photoPath?.startsWith(user.id + "/")) {
-    const cached = signedUrlCache.get(photoPath);
-    const now = Date.now();
-    if (cached && cached.expiresAt > now) {
-      avatar = cached.url;
-    } else {
-      const { data } = await client.storage
-        .from("employee-files")
-        .createSignedUrl(photoPath, 3600);
-      if (data?.signedUrl) {
-        avatar = data.signedUrl;
-        // Cache for 50 minutes (signed for 60)
-        signedUrlCache.set(photoPath, {
-          url: data.signedUrl,
-          expiresAt: now + 50 * 60 * 1000,
-        });
-      }
-    }
-  }
-  return { user, employee, avatar };
+  const avatar = photoPath?.startsWith(user.id + "/") ? profilePhotoHref(photoPath) : null;
+  const { data: accessRole, error: accessError } = await client.rpc("portal_access", {});
+  if (accessError) throw new Error("دریافت سطح دسترسی حساب انجام نشد.");
+  return { user, employee, avatar, accessRole };
 });
 
 export const getAccountRecords = cache(async (employeeId: number) => {

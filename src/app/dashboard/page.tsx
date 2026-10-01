@@ -14,7 +14,12 @@ import {
   UserRound,
 } from "lucide-react";
 import { getAccount } from "@/lib/account/data";
-import { completionFields, profileCompletion } from "@/lib/account-fields";
+import { accountSectionHref } from "@/lib/account/routes";
+import {
+  completionFields,
+  getProfileChecklist,
+  profileCompletion,
+} from "@/lib/account-fields";
 import { Avatar, PortalShell } from "@/components/portal/PortalShell";
 import s from "@/components/portal/Portal.module.css";
 import d from "./Dashboard.module.css";
@@ -24,7 +29,7 @@ export const metadata = { title: "صفحهٔ اصلی | پورتال زیلبر"
 
 const tools = [
   {
-    href: "/account",
+    href: accountSectionHref(),
     title: "اطلاعات شخصی",
     text: "مشخصات فردی، تصویر حساب و اطلاعات شما.",
     icon: UserRound,
@@ -32,7 +37,7 @@ const tools = [
     number: "۰۱",
   },
   {
-    href: "/account?section=documents",
+    href: accountSectionHref("documents"),
     title: "مدارک و گواهی‌ها",
     text: "دسترسی به مدارک و بارگذاری فایل‌های تازه.",
     icon: FileText,
@@ -40,7 +45,7 @@ const tools = [
     number: "۰۲",
   },
   {
-    href: "/account?section=career",
+    href: accountSectionHref("career"),
     title: "مسیر حرفه‌ای",
     text: "تجربه‌های کاری، تحصیلات و مهارت‌های شما.",
     icon: GraduationCap,
@@ -48,7 +53,7 @@ const tools = [
     number: "۰۳",
   },
   {
-    href: "/account?section=employment",
+    href: accountSectionHref("employment"),
     title: "پروندهٔ همکاری",
     text: "قراردادها، خدمات سازمانی و ارزیابی‌ها.",
     icon: ShieldCheck,
@@ -58,19 +63,19 @@ const tools = [
 ];
 const shortcuts = [
   {
-    href: "/account?section=contact",
+    href: accountSectionHref("contact"),
     title: "تماس و نشانی",
     text: "به‌روزرسانی راه‌های ارتباطی",
     icon: ContactRound,
   },
   {
-    href: "/account?section=finance",
+    href: accountSectionHref("finance"),
     title: "بانک و بیمه",
     text: "مدیریت اطلاعات مالی شخصی",
     icon: Landmark,
   },
   {
-    href: "/account?section=security",
+    href: accountSectionHref("security"),
     title: "امنیت حساب",
     text: "تغییر رمز عبور",
     icon: KeyRound,
@@ -78,7 +83,7 @@ const shortcuts = [
 ];
 
 export default async function DashboardPage() {
-  const { user, employee, avatar } = await getAccount();
+  const { user, employee, avatar, accessRole } = await getAccount();
   const name =
     employee?.full_name ||
     String(user.user_metadata.full_name || "همکار زیلبر");
@@ -89,34 +94,9 @@ export default async function DashboardPage() {
         Boolean(employee[key as keyof typeof employee]),
       ).length
     : 0;
-  const checks = [
-    {
-      label: "مشخصات فردی",
-      fields: ["first_name", "last_name", "birth_date", "national_id"],
-      href: "/account?section=identity",
-    },
-    {
-      label: "اطلاعات تماس و نشانی",
-      fields: [
-        "mobile_phone",
-        "personal_email",
-        "city",
-        "address_line_1",
-        "postal_code",
-      ],
-      href: "/account?section=contact",
-    },
-    {
-      label: "تصویر حساب",
-      fields: ["photo_storage_path"],
-      href: "/account?section=identity",
-    },
-  ].map((item) => ({
+  const checks = getProfileChecklist(employee || {}).map((item) => ({
     ...item,
-    complete: Boolean(
-      employee &&
-      item.fields.every((key) => employee[key as keyof typeof employee]),
-    ),
+    href: accountSectionHref(item.section),
   }));
   const nextStep = checks.find((item) => !item.complete);
   const today = new Date();
@@ -130,7 +110,7 @@ export default async function DashboardPage() {
   }).format(today);
 
   return (
-    <PortalShell
+    <PortalShell gender={employee?.gender} accessRole={accessRole}
       name={name}
       avatar={avatar}
       email={user.email}
@@ -165,7 +145,7 @@ export default async function DashboardPage() {
           aria-labelledby="welcome-heading"
         >
           <div className={d.identity}>
-            <Avatar name={name} src={avatar} />
+            <Avatar name={name} src={avatar} gender={employee?.gender} />
             <div>
               <p className={d.eyebrow}>خوش آمدید</p>
               <h2 id="welcome-heading">سلام، {first}</h2>
@@ -180,11 +160,18 @@ export default async function DashboardPage() {
             اطلاعات شخصی، مدارک و مسیر همکاری‌تان را از همین‌جا دنبال کنید.
           </p>
           <div className={d.welcomeActions}>
-            <Link href="/account" className={s.button}>
+            {accessRole === "super_admin" && (
+              <Link href="/people" className={`${s.button} ${d.primaryAction}`}>
+                <ShieldCheck size={17} aria-hidden="true" />
+                {accessRole === "super_admin" ? "پنل سوپرادمین" : "مدیریت پرونده‌ها"}
+                <ArrowLeft size={16} aria-hidden="true" />
+              </Link>
+            )}
+            <Link href={accountSectionHref()} className={`${s.button} ${d.primaryAction}`}>
               رفتن به حساب من
               <ArrowLeft size={16} aria-hidden="true" />
             </Link>
-            <Link href="/account?section=documents" className={d.textLink}>
+            <Link href={accountSectionHref("documents")} className={d.textLink}>
               مدارک و گواهی‌های من
               <ArrowUpLeft size={16} aria-hidden="true" />
             </Link>
@@ -195,7 +182,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section
+        {completion < 100 && <section
           className={d.completionCard}
           aria-labelledby="completion-heading"
         >
@@ -269,7 +256,7 @@ export default async function DashboardPage() {
               برای اتصال حساب به پروندهٔ پرسنلی، با مسئول سامانه هماهنگ کنید.
             </p>
           )}
-        </section>
+        </section>}
       </div>
 
       <section className={d.services} aria-labelledby="services-heading">

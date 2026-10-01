@@ -10,21 +10,21 @@ export default async function AccountPage({
 }: {
   searchParams: Promise<{ section?: string }>;
 }) {
-  const { user, employee, avatar } = await getAccount();
+  const { user, employee, avatar, accessRole } = await getAccount();
   const { section } = await searchParams;
   const name =
     employee?.full_name ||
     String(user.user_metadata.full_name || "همکار زیلبر");
   const records = employee ? await getAccountRecords(employee.id) : {};
   return (
-    <PortalShell
+    <PortalShell gender={employee?.gender} accessRole={accessRole}
       name={name}
       avatar={avatar}
       email={user.email}
       role={[employee?.job_title, employee?.department].filter(Boolean).join(" · ")}
       variant="dashboard"
     >
-      <div className={s.pageTitle}>
+      {!employee && <div className={s.pageTitle} id="account-workspace">
         <div>
           <p className={s.eyebrow}>فضای شخصی شما</p>
           <h1 className={s.heading}>حساب من</h1>
@@ -34,14 +34,14 @@ export default async function AccountPage({
           <ShieldCheck size={14} />
           پروندهٔ شخصی
         </span>
-      </div>
+      </div>}
       {employee ? (
         <AccountWorkspace
           employee={employee}
           avatar={avatar}
           records={records}
           email={user.email || ""}
-          initialSection={section || "identity"}
+          initialSection={section || "overview"}
         />
       ) : (
         <section className={`${s.glass} ${s.panel}`}>

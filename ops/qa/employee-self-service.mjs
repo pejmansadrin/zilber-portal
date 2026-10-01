@@ -166,6 +166,7 @@ try {
   for (const route of [
     "/dashboard",
     "/account",
+    "/account?section=identity",
     "/account?section=career",
     "/account?section=documents",
     "/account?section=employment",
@@ -176,7 +177,8 @@ try {
     assert.equal(response.status, 200, route);
     assert(html.includes("حساب من"), route);
     assert(!html.includes("دریافت اطلاعات انجام نشد"), route);
-    if (route === "/account") assert(html.includes("نام خانوادگی"), route);
+    if (route === "/account") assert(html.includes("پرونده در یک نگاه"), route);
+    if (route === "/account?section=identity") assert(html.includes('name="last_name"'), route);
   }
   const page = await fetch(base + "/account?section=contact", {
     headers: { cookie },

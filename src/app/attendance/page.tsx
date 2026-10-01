@@ -30,7 +30,7 @@ export default async function AttendancePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-      <Header profile={profile} />
+      <Header profile={profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome Banner */}
@@ -38,7 +38,7 @@ export default async function AttendancePage() {
           <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-semibold backdrop-blur-sm mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-surface [--glass-tint:rgb(255_255_255_/_12%)] [--glass-shadow:none] text-blue-200 text-xs font-semibold  mb-3">
                 <Award className="w-3.5 h-3.5 text-blue-300" />
                 <span>پورتال اختصاصی زیلبر</span>
               </div>

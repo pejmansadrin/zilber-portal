@@ -7,7 +7,8 @@ export async function GET(request: NextRequest) {
   } = await client.auth.getUser();
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
   const path = request.nextUrl.searchParams.get("path");
-  if (!path?.startsWith(user.id + "/") || path.includes(".."))
+  const { data: role } = await client.rpc("portal_access", {});
+  if (!path || path.includes("..") || (!path.startsWith(user.id + "/") && role !== "super_admin"))
     return new NextResponse("Not found", { status: 404 });
   const { data, error } = await client.storage
     .from("employee-files")

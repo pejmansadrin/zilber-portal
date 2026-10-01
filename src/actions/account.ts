@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient as createAuthClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeProfilePhoto } from "@/lib/account/profile-photo";
 import { getCloudConfig } from "@/lib/supabase/config";
 import {
   collections,
   personalSections,
+  organizationFields,
   type Field,
 } from "@/lib/account-fields";
 import { fromPersianDate, latinDigits } from "@/lib/persian-date";
@@ -108,14 +110,14 @@ async function upload(
 ) {
   if (file.size > 5 * 1024 * 1024)
     throw new Error("حداکثر حجم فایل ۵ مگابایت است.");
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  let bytes: Uint8Array = new Uint8Array(await file.arrayBuffer());
   const jpg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
   const png = [137, 80, 78, 71, 13, 10, 26, 10].every((v, i) => bytes[i] === v);
   const webp =
     Buffer.from(bytes.slice(0, 4)).toString() === "RIFF" &&
     Buffer.from(bytes.slice(8, 12)).toString() === "WEBP";
   const pdf = Buffer.from(bytes.slice(0, 5)).toString() === "%PDF-";
-  const mime = jpg
+  let mime = jpg
     ? "image/jpeg"
     : png
       ? "image/png"
@@ -130,7 +132,8 @@ async function upload(
         ? "فقط تصویر JPG، PNG یا WebP قابل بارگذاری است."
         : "فقط PDF یا تصویر JPG، PNG و WebP قابل بارگذاری است.",
     );
-  const ext = jpg ? "jpg" : png ? "png" : webp ? "webp" : "pdf";
+  if (imageOnly) { bytes = await normalizeProfilePhoto(bytes); mime = "image/webp"; }
+  const ext = mime === "image/jpeg" ? "jpg" : mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "pdf";
   const path = `${ctx.user.id}/${crypto.randomUUID()}.${ext}`;
   const { error } = await ctx.client.storage
     .from("employee-files")
@@ -310,6 +313,7 @@ export async function saveAvatar(
         .from("employee-files")
         .remove([ctx.employee.photo_storage_path]);
     refreshed();
+    for (const path of ["/people", "/attendance", "/leaves", "/admin"]) revalidatePath(path);
     return { ok: true, message: "تصویر حساب به‌روز شد." };
   } catch (error) {
     return failure(
@@ -371,4 +375,34 @@ export async function changePassword(
     ok: true,
     message: "رمز عبور تغییر کرد. برای ورود بعدی از رمز تازه استفاده کنید.",
   };
+}
+
+export async function saveOrganization(target: number, area: string, _previous: FormResult, form: FormData): Promise<FormResult> {
+  const client = await createClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user || !Number.isSafeInteger(target)) return failure("دسترسی مجاز نیست.");
+  const { data: role, error: accessError } = await client.rpc("portal_access", {});
+  if (accessError || role !== "super_admin") return failure("دسترسی مجاز نیست.");
+  const config = collections.find(c => c.table === area && (role === "super_admin" || c.readOnly || c.id === "training"));
+  let fields: readonly Field[] = area === "employees" ? [...organizationFields, { name: "manager_id", label: "شناسه سرپرست", type: "number" }] : config?.fields.filter(f => f.type !== "file" && f.name !== "employee_feedback") || [];
+  const personalSection = form.get("__personal_section");
+  if (personalSection) {
+    if (role !== "super_admin" || area !== "employees") return failure("دسترسی مجاز نیست.");
+    fields = personalSections.find(s => s.id === personalSection)?.fields || [];
+  }
+  if (!fields.length) return failure("بخش معتبر نیست.");
+  const parsed = values(fields, form);
+  if (Object.keys(parsed.errors).length) return failure("اطلاعات واردشده را بررسی کنید.", parsed.errors);
+  const rawId = form.get("record_id");
+  const recordId = rawId ? Number(rawId) : null;
+  if (recordId !== null && (!Number.isSafeInteger(recordId) || recordId <= 0)) return failure("رکورد معتبر نیست.");
+  const { error } = await client.rpc("save_organization", { target, area, record_id: recordId, patch: parsed.data });
+  if (error) return failure("ذخیره انجام نشد. سطح دسترسی و اطلاعات واردشده را بررسی کنید.");
+  revalidatePath("/people"); revalidatePath("/account"); revalidatePath("/dashboard");
+  return { ok: true, message: "اطلاعات سازمانی ذخیره شد." };
+}
+
+export async function saveManagedPersonal(target: number, section: string, previous: FormResult, form: FormData): Promise<FormResult> {
+  form.set("__personal_section",section);
+  return saveOrganization(target,"employees",previous,form);
 }

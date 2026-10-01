@@ -7,13 +7,17 @@ import { LogOut, Clock, Calendar, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { ProfileImage } from '@/components/portal/ProfileImage';
 
 interface HeaderProps {
   profile?: UserProfile | null;
   authenticated?: boolean;
+  isSuperAdmin?: boolean;
+  avatar?: string | null;
+  gender?: string | null;
 }
 
-export function Header({ profile, authenticated = false }: HeaderProps) {
+export function Header({ profile, authenticated = false, isSuperAdmin = false, avatar, gender }: HeaderProps) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -66,13 +70,13 @@ export function Header({ profile, authenticated = false }: HeaderProps) {
                 <Calendar className="w-4 h-4 text-blue-300" />
                 مرخصی و مأموریت
               </Link>
-              {(profile?.role === 'manager' || profile?.role === 'hr_admin') && (
+              {isSuperAdmin && (
                 <Link
-                  href="/admin"
+                  href="/people"
                   className="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors text-blue-200 hover:text-white flex items-center gap-1.5 bg-blue-500/20"
                 >
                   <ShieldCheck className="w-4 h-4 text-blue-300" />
-                  مدیریت و کارتابل
+                  پنل سوپرادمین
                 </Link>
               )}
             </nav>
@@ -93,11 +97,7 @@ export function Header({ profile, authenticated = false }: HeaderProps) {
                 </div>
 
                 <div className="w-9 h-9 rounded-full bg-blue-700/60 border border-blue-400/30 flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                  {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    profile.full_name.charAt(0)
-                  )}
+                  <ProfileImage src={avatar} gender={gender} alt={profile.full_name} width={36} height={36} className="w-full h-full rounded-full object-cover" />
                 </div>
 
                 <button

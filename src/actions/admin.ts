@@ -6,7 +6,7 @@ import { getSessionUser } from './attendance';
 
 export async function getAdminDashboardData() {
   const session = await getSessionUser();
-  if (!session || (session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
+  if (!session || (!session.isSuperAdmin && session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
     return null;
   }
 
@@ -57,7 +57,7 @@ export async function getAdminDashboardData() {
 
 export async function reviewLeaveRequest(leaveId: string, status: 'approved' | 'rejected', managerNote?: string) {
   const session = await getSessionUser();
-  if (!session || (session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
+  if (!session || (!session.isSuperAdmin && session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
     return { success: false, error: 'عدم دسترسی کافی برای این عملیات' };
   }
 
@@ -81,7 +81,7 @@ export async function reviewLeaveRequest(leaveId: string, status: 'approved' | '
 
 export async function reviewMissionRequest(missionId: string, status: 'approved' | 'rejected', managerNote?: string) {
   const session = await getSessionUser();
-  if (!session || (session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
+  if (!session || (!session.isSuperAdmin && session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin')) {
     return { success: false, error: 'عدم دسترسی کافی برای این عملیات' };
   }
 

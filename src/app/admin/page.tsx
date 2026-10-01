@@ -13,11 +13,12 @@ export default async function AdminPage() {
   if (!session) {
     redirect('/login');
   }
+  if (session.isSuperAdmin) redirect('/people');
 
-  if (session.profile?.role !== 'manager' && session.profile?.role !== 'hr_admin') {
+  if (!session.isSuperAdmin) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-        <Header profile={session.profile} />
+        <Header profile={session.profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
         <main className="flex-1 max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-4">
             <AlertTriangle className="w-8 h-8" />
@@ -43,7 +44,7 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
-      <Header profile={session.profile} />
+      <Header profile={session.profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Page Title */}

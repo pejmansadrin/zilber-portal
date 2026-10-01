@@ -14,7 +14,7 @@ export function DashboardActions() {
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setShowLeaveModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/20 backdrop-blur-md flex items-center gap-2 transition-all active:scale-[0.98]"
+          className="px-4 py-2.5 rounded-xl glass-surface [--glass-tint:rgb(255_255_255_/_12%)] [--glass-shadow:none] hover:[--glass-tint:rgb(255_255_255_/_20%)] text-white text-sm font-semibold border border-white/20  flex items-center gap-2 transition-all active:scale-[0.98]"
         >
           <Calendar className="w-4 h-4 text-blue-300" />
           <span>درخواست مرخصی</span>

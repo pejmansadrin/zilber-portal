@@ -1,3 +1,10 @@
+.glass { composes: glass-surface from global; }
+.sideNav { composes: glass-surface from global; }
+.header { composes: glass-surface from global; }
+.sectionPicker { composes: glass-surface from global; }
+.accountNavigation { composes: glass-surface from global; }
+.sectionPickerBackdrop { composes: glass-scrim from global; }
+
 .page {
   --ink: #16214f;
   --muted: #53617b;
@@ -27,13 +34,8 @@
 }
 .glass,
 .sideNav {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  box-shadow:
-    0 18px 50px -22px rgb(15 23 42 / 28%),
-    0 1px 0 rgb(255 255 255 / 20%) inset;
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border);
+
   border-radius: 26px;
 }
 .header {
@@ -44,23 +46,31 @@
   width: 100%;
   height: 54px;
   min-height: 54px;
-  background: rgb(255 255 255 / 82%);
+
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 2px 14px -3px rgb(15 23 42 / 7%);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+
   border-radius: 0;
   margin: 0;
   padding: 0;
   z-index: 50;
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-:global(html.dark) .header {
-  background: rgb(13 22 38 / 85%);
-  border-bottom-color: var(--line);
-  box-shadow: 0 2px 18px -4px rgb(0 0 0 / 45%);
+.headerMenuOpen {
+  background: rgb(255 255 255 / 95%) !important;
+  box-shadow: 0 4px 20px -4px rgb(15 23 42 / 8%) !important;
+}
+:global(html.dark) .headerMenuOpen {
+  background: rgb(13 22 38 / 95%) !important;
+  box-shadow: 0 4px 24px -4px rgb(0 0 0 / 50%) !important;
+}
+.headerMenuOpen::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 0 !important;
 }
 .headerInner {
+  position: relative;
+  z-index: 100;
   max-width: 1240px;
   height: 100%;
   margin: 0 auto;
@@ -146,6 +156,11 @@
 .iconButton:hover {
   background: var(--input);
 }
+.iconButtonActive {
+  background: var(--input);
+  color: var(--ink);
+  border-color: var(--muted);
+}
 .miniAvatar,
 .avatar {
   display: flex;
@@ -180,6 +195,8 @@
   font-weight: 700;
 }
 .main {
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   margin: 24px auto 0;
   padding: 0 24px;
@@ -207,6 +224,7 @@
   gap: 20px;
   align-items: center;
   margin: 0 6px 26px;
+  scroll-margin-top: 72px;
 }
 .date {
   font-size: 12px;
@@ -447,7 +465,233 @@
   grid-template-columns: 235px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
+  overflow-anchor: none;
 }
+.profileProgress {
+  grid-column: 1 / -1;
+  padding: 22px 26px;
+  margin-bottom: 22px;
+}
+.profileProgressTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.profileProgressTop h2 {
+  font-size: 16px;
+  margin: 2px 0 4px;
+}
+.profileProgressTop .muted {
+  font-size: 12px;
+}
+.profileProgressBar {
+  display: block;
+  width: 100%;
+  height: 7px;
+  margin: 17px 0 12px;
+  border: 0;
+  border-radius: 99px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--subtle);
+}
+.profileProgressBar::-webkit-progress-bar {
+  background: var(--subtle);
+  border-radius: 99px;
+}
+.profileProgressBar::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+.profileProgressBar::-moz-progress-bar {
+  background: var(--accent);
+  border-radius: 99px;
+}
+.profileProgressList {
+  display: flex;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+.profileProgressList li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.profileProgressList li > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.profileProgressList .profileProgressDone,
+.profileProgressList .profileProgressDone > span {
+  color: #18765b;
+}
+:global(html.dark) .profileProgressList .profileProgressDone,
+:global(html.dark) .profileProgressList .profileProgressDone > span {
+  color: #8adac1;
+}
+.accountNavigation {
+  display: contents;
+}
+.mobileSectionTrigger {
+  display: none;
+}
+.sectionPickerBackdrop {
+  --glass-scrim-tint: rgb(8 16 32 / 32%);
+  --glass-blur: 0px;
+  --glass-saturation: 100%;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  touch-action: none;
+}
+
+.sectionPicker {
+  --glass-tint: rgb(248 250 254 / 98%);
+  --glass-blur: 24px;
+  --glass-saturation: 150%;
+  position: relative;
+  z-index: 1;
+  width: min(460px, calc(100vw - 28px));
+  max-height: min(85dvh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ink);
+  touch-action: auto;
+
+  border: 1px solid var(--glass-border);
+  border-radius: 26px;
+  box-shadow: 0 25px 60px -12px rgb(0 0 0 / 60%);
+
+  animation: sectionPickerEnter 0.18s ease-out both;
+}
+:global(html.dark) .sectionPicker {
+  --glass-tint: rgb(21 34 56 / 98%);
+}
+.sectionPickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+}
+.sectionPickerHeader h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+}
+.sectionPickerClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  color: var(--muted);
+  background: var(--subtle);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sectionPickerClose:hover {
+  color: var(--ink);
+  background: var(--input);
+}
+.sectionPickerList {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 12px 14px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sectionPickerList::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.sectionPickerOption {
+  width: 100%;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--ink);
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 17px;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+.sectionPickerOption:hover {
+  background: var(--subtle);
+  border-color: var(--line);
+}
+.sectionPickerOptionActive {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.sectionPickerOptionIcon,
+.mobileSectionIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 13%, transparent);
+  border-radius: 14px;
+}
+.sectionPickerOptionIcon {
+  width: 44px;
+  height: 44px;
+}
+.sectionPickerOptionText,
+.mobileSectionText {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+.sectionPickerOptionText strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.sectionPickerOptionText small,
+.sectionPickerNumber {
+  color: var(--muted);
+  font-size: 11px;
+}
+.sectionPickerNumber {
+  padding: 4px 7px;
+  background: var(--subtle);
+  border-radius: 8px;
+}
+.sectionPickerCheck {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+@keyframes sectionPickerEnter {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 .sideNav {
   position: sticky;
   top: 78px;
@@ -503,7 +747,7 @@
 :global(html.dark) .sideNavBtn:hover .sideNavIcon {
   color: #60a5fa;
 }
-.sideNav button[aria-current="true"],
+.sideNav button[aria-selected="true"],
 .sideNavBtnActive {
   background: #16214f !important;
   color: #fff !important;
@@ -512,22 +756,22 @@
   box-shadow: 0 4px 16px -2px rgb(22 33 79 / 35%);
   border-color: transparent !important;
 }
-:global(html.dark) .sideNav button[aria-current="true"],
+:global(html.dark) .sideNav button[aria-selected="true"],
 :global(html.dark) .sideNavBtnActive {
   background: #2563eb !important;
   color: #ffffff !important;
   box-shadow: 0 4px 20px -3px rgb(37 99 235 / 45%);
 }
-.sideNav button[aria-current="true"] .sideNavIcon,
+.sideNav button[aria-selected="true"] .sideNavIcon,
 .sideNavBtnActive .sideNavIcon {
   color: #93c5fd !important;
   transform: scale(1.15);
 }
-:global(html.dark) .sideNav button[aria-current="true"] .sideNavIcon,
+:global(html.dark) .sideNav button[aria-selected="true"] .sideNavIcon,
 :global(html.dark) .sideNavBtnActive .sideNavIcon {
   color: #ffffff !important;
 }
-.sideNav button[aria-current="true"]::before,
+.sideNav button[aria-selected="true"]::before,
 .sideNavBtnActive::before {
   content: "";
   position: absolute;
@@ -540,7 +784,7 @@
   background: #60a5fa;
   animation: tabPillIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .sideNav button[aria-current="true"]::before,
+:global(html.dark) .sideNav button[aria-selected="true"]::before,
 :global(html.dark) .sideNavBtnActive::before {
   background: #ffffff;
 }
@@ -567,36 +811,47 @@
   display: grid;
   gap: 22px;
   min-width: 0;
+  overflow-anchor: none;
 }
 .tabPanelAnimated {
-  animation: tabFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  animation: tabFadeSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Avoid a persistent opacity backdrop root around glass children. */
 }
 
 @keyframes tabFadeSlideIn {
   from {
-    opacity: 0;
     transform: translateY(12px) scale(0.996);
   }
   to {
-    opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 .panel {
-  padding: 28px;
+  padding: 22px 24px;
+}
+.collectionPanel {
+  padding: 16px 20px;
 }
 .panelHeading {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  align-items: start;
-  margin-bottom: 26px;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.collectionPanel .panelHeading {
+  margin-bottom: 12px;
+  align-items: center;
 }
 .panelHeading h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
+  letter-spacing: -0.2px;
+}
+.panelHeading p {
+  font-size: 12px;
+  line-height: 1.5;
 }
 .panelHeading .toolIcon {
   flex-shrink: 0;
@@ -728,30 +983,30 @@
 }
 .record {
   border: 1px solid var(--line);
-  border-radius: 17px;
+  border-radius: 14px;
   background: var(--subtle);
-  padding: 20px;
-  margin-top: 14px;
+  padding: 14px 16px;
+  margin-top: 10px;
 }
 .recordHeading {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .recordHeading h3 {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 650;
 }
 .record details summary {
   cursor: pointer;
   font-size: 12px;
   color: var(--accent);
-  padding: 5px 0;
+  padding: 4px 0;
 }
 .record details[open] summary {
-  margin-bottom: 25px;
+  margin-bottom: 16px;
 }
 .recordActions {
   display: flex;
@@ -762,23 +1017,60 @@
   color: var(--error);
 }
 .empty {
-  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 18px;
   text-align: center;
   border: 1px dashed rgb(86 112 151 / 30%);
-  border-radius: 16px;
-  margin: 18px 0;
+  border-radius: 14px;
+  background: var(--subtle);
+  margin: 4px 0 0;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+:global(html.dark) .empty {
+  border-color: rgb(255 255 255 / 12%);
+  background: rgb(255 255 255 / 2.5%);
+}
+.empty:hover {
+  border-color: rgb(59 130 246 / 45%);
+}
+.emptyIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--input);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+}
+:global(html.dark) .emptyIconWrap {
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 9%);
+  color: rgb(156 163 175);
 }
 .empty p {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 2;
-}
-.empty svg {
-  margin: 0 auto 10px;
-  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
 }
 .empty .secondary {
-  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 9px;
+  margin-top: 10px;
 }
 .descriptionList {
   display: grid;
@@ -848,7 +1140,10 @@
     grid-template-columns: 205px minmax(0, 1fr);
   }
   .panel {
-    padding: 24px;
+    padding: 20px 22px;
+  }
+  .collectionPanel {
+    padding: 15px 18px;
   }
   .heroMark {
     width: 100px;
@@ -974,37 +1269,134 @@
   .accountLayout {
     grid-template-columns: 1fr;
     gap: 18px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+  .profileProgress {
+    padding: 20px 18px;
+    margin-bottom: 18px;
+  }
+  .profileProgressTop {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .profileProgressTop .secondary {
+    width: 100%;
+  }
+  .profileProgressList {
+    gap: 8px 14px;
   }
   .sideNav {
-    position: static;
-    display: flex;
-    overflow-x: auto;
-    padding: 7px;
-    border-radius: 16px;
-    gap: 3px;
-  }
-  .sideNav button,
-  .sideNavBtn {
-    width: auto;
-    flex-shrink: 0;
-    padding: 9px 12px;
-    gap: 7px;
-    min-height: 42px;
-    transform: none !important;
-  }
-  .sideNav button::before,
-  .sideNavBtn::before {
-    display: none !important;
-  }
-  .sideNav small {
     display: none;
   }
+  .accountNavigation {
+    position: fixed;
+    z-index: 201;
+    right: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: min(460px, calc(100vw - 28px));
+    display: block;
+    padding: 7px;
+
+    border: 1px solid var(--glass-border);
+    border-radius: 25px;
+
+    transform: translateX(50%);
+  }
+  .accountNavigationOpen {
+    --glass-tint: rgb(248 250 254 / 98%);
+    --glass-blur: 24px;
+  }
+  :global(html.dark) .accountNavigationOpen {
+    --glass-tint: rgb(21 34 56 / 98%);
+  }
+  .accountNavigationOpen .sectionPicker {
+    width: 100%;
+    max-height: min(70dvh, 580px);
+    border: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: none;
+    animation: none;
+  }
+  .accountNavigationOpen .sectionPickerList {
+    min-height: 0;
+    padding-bottom: 12px;
+  }
+  .accountNavigationOpen .mobileSectionTrigger {
+    border-top-color: var(--line);
+    border-radius: 0 0 18px 18px;
+  }
+  .mobileSectionTrigger {
+    width: 100%;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 8px 11px;
+    color: var(--ink);
+    text-align: right;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobileSectionTrigger:hover,
+  .mobileSectionTrigger:focus-visible {
+    background: var(--subtle);
+    outline: none;
+  }
+  .mobileSectionTrigger > svg {
+    color: var(--muted);
+    transition: transform 0.18s ease;
+  }
+  .mobileSectionTrigger[aria-expanded="true"] > svg {
+    transform: rotate(180deg);
+  }
+  .mobileSectionIcon {
+    width: 44px;
+    height: 44px;
+  }
+  .mobileSectionText small {
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .mobileSectionText strong {
+    overflow: hidden;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sectionPickerBackdrop {
+    padding: 16px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .sectionPicker {
+    width: min(460px, calc(100vw - 28px));
+    max-height: min(85dvh, 660px);
+    border-radius: 26px;
+  }
+  .sectionPickerHeader {
+    padding: 18px 18px 12px;
+  }
+  .sectionPickerList {
+    padding: 2px 10px 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sectionPickerList::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
   .panel {
-    padding: 24px 18px;
-    border-radius: 21px;
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+  .collectionPanel {
+    padding: 14px 14px;
   }
   .panelHeading h2 {
-    font-size: 16px;
+    font-size: 15px;
   }
   .formGrid {
     gap: 23px 14px;
@@ -1072,50 +1464,70 @@
   }
 }
 
-/* The dashboard has a quiet canvas so the glass surfaces stay readable. */
+/* The dashboard has a quiet canvas with soft ambient glowing orbs so the frosted glass surfaces refract and blur beautifully. */
 .dashboardPage {
-  --panel: rgb(255 255 255 / 76%);
-  --line: rgb(136 158 193 / 22%);
-  --subtle: rgb(235 241 251 / 65%);
-  background: #f1f4f9;
+  --panel: rgb(255 255 255 / 68%);
+  --line: rgb(145 170 210 / 26%);
+  --subtle: rgb(235 242 253 / 65%);
+  background: #f2f5f9;
 }
 .dashboardBackdrop {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(
-      ellipse 850px 480px at 95% -8%,
-      rgb(159 185 224 / 24%),
-      transparent 75%
+      ellipse 800px 520px at 92% 5%,
+      rgb(140 180 248 / 45%),
+      transparent 70%
     ),
     radial-gradient(
-      ellipse 700px 500px at -12% 35%,
-      rgb(194 210 235 / 16%),
-      transparent 75%
+      ellipse 680px 520px at 8% 28%,
+      rgb(175 195 252 / 40%),
+      transparent 68%
     ),
-    linear-gradient(180deg, #edf2f8, #f6f8fb 72%);
+    radial-gradient(
+      ellipse 900px 560px at 58% 68%,
+      rgb(160 215 255 / 38%),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 580px 440px at 14% 85%,
+      rgb(195 190 252 / 30%),
+      transparent 68%
+    ),
+    linear-gradient(180deg, #edf2f9 0%, #f4f7fc 60%, #eef3f9 100%);
 }
 :global(html.dark) .dashboardPage {
-  --panel: rgb(21 34 56 / 82%);
-  --line: rgb(149 174 214 / 17%);
-  --subtle: rgb(151 181 224 / 7%);
-  background: #0d1626;
+  --panel: rgb(17 27 46 / 72%);
+  --line: rgb(150 178 225 / 16%);
+  --subtle: rgb(151 181 224 / 9%);
+  background: #090e18;
 }
 :global(html.dark) .dashboardBackdrop {
   background:
     radial-gradient(
-      ellipse 850px 500px at 95% -8%,
-      rgb(69 106 167 / 16%),
-      transparent 75%
+      ellipse 800px 520px at 92% 5%,
+      rgb(37 99 235 / 32%),
+      transparent 70%
     ),
     radial-gradient(
-      ellipse 700px 500px at -12% 35%,
-      rgb(43 70 112 / 12%),
-      transparent 75%
+      ellipse 680px 520px at 8% 28%,
+      rgb(99 102 241 / 26%),
+      transparent 68%
     ),
-    linear-gradient(180deg, #111d30, #0d1626 72%);
+    radial-gradient(
+      ellipse 900px 560px at 58% 68%,
+      rgb(14 165 233 / 22%),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 580px 440px at 14% 85%,
+      rgb(139 92 246 / 18%),
+      transparent 68%
+    ),
+    linear-gradient(180deg, #0d1524 0%, #090e18 60%, #0a111e 100%);
 }
 
 @media (max-width: 440px) {
@@ -1135,6 +1547,34 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+}
+
+.themeToggleButton {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--muted) 45%, transparent);
+  border-radius: 50%;
+  background: var(--input);
+  color: var(--ink);
+  opacity: 1;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.themeToggleButton:hover {
+  background: var(--input);
+  color: var(--ink);
+  border-color: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 25%);
+}
+.themeToggleButton:active {
+  transform: scale(0.97);
+}
+.themeToggleButton:focus-visible {
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 60%);
 }
 
 .profileAvatarBtn {
@@ -1180,26 +1620,32 @@
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: transparent;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
   cursor: default;
+}
+.cornerBackdrop::after {
+  display: none !important;
 }
 
 .cornerCard {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  z-index: 90;
-  width: 275px;
+  z-index: 110;
+  width: 280px;
   max-width: min(300px, calc(100vw - 28px));
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgb(255 255 255 / 96%);
+  border-radius: 20px;
+  border: 1px solid rgb(255 255 255 / 80%);
+  background: rgb(255 255 255 / 76%);
   padding: 10px;
   box-shadow:
-    0 20px 45px -10px rgb(15 23 42 / 20%),
-    0 0 0 1px rgb(255 255 255 / 70%) inset;
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  backdrop-filter: blur(28px) saturate(180%);
+    0 20px 45px -10px rgb(15 23 42 / 18%),
+    0 1px 1px 0 rgb(255 255 255 / 95%) inset,
+    0 0 0 1px rgb(255 255 255 / 45%) inset;
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  backdrop-filter: blur(32px) saturate(190%);
   direction: rtl;
   transform-origin: top left;
   opacity: 0;
@@ -1211,11 +1657,40 @@
 }
 
 :global(html.dark) .cornerCard {
-  border-color: rgb(255 255 255 / 12%);
-  background: rgb(17 24 39 / 96%);
+  border-color: rgb(255 255 255 / 13%);
+  background: rgb(17 27 46 / 82%);
   box-shadow:
     0 25px 55px -10px rgb(0 0 0 / 70%),
-    0 0 0 1px rgb(255 255 255 / 8%) inset;
+    0 1px 1px 0 rgb(255 255 255 / 18%) inset,
+    0 0 0 1px rgb(255 255 255 / 6%) inset;
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  backdrop-filter: blur(32px) saturate(190%);
+}
+
+.cornerCard::after {
+  display: none !important;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cornerCard {
+    background: #ffffff;
+  }
+  :global(html.dark) .cornerCard {
+    background: #111b2e;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .cornerCard {
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :global(html.dark) .cornerCard {
+    background: #111b2e;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .cornerCardActive {
@@ -1224,14 +1699,50 @@
   pointer-events: auto;
 }
 
-.cornerUserSection {
+.cornerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px;
+}
+
+.cornerUserLink {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 11px;
+  transition: background-color 0.14s ease;
+}
+
+.cornerUserLink:hover {
   background: var(--subtle);
-  border: 1px solid var(--line);
+}
+
+.cornerCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cornerCloseBtn:hover {
+  background: var(--subtle);
+  color: var(--ink);
 }
 
 .cornerAvatarWrap {
@@ -1249,7 +1760,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 2px;
+  gap: 1px;
 }
 
 .cornerUserName {
@@ -1281,20 +1792,20 @@
 .cornerDivider {
   height: 1px;
   background: var(--line);
-  margin: 8px 4px;
+  margin: 4px 4px;
 }
 
 .cornerNav {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .cornerNavItem {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 7px 9px;
   border-radius: 11px;
   text-decoration: none;
   color: var(--ink);
@@ -1314,9 +1825,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: rgb(37 99 235 / 10%);
   color: #2563eb;
   flex-shrink: 0;
@@ -1348,8 +1859,8 @@
 }
 
 .cornerActiveIndicator {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #2563eb;
   flex-shrink: 0;
@@ -1362,37 +1873,165 @@
 .cornerLogoutBtn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 7px 9px;
   border-radius: 11px;
-  border: 1px solid #fecaca;
-  background: rgb(254 242 242 / 70%);
+  border: 1px solid transparent;
+  background: transparent;
   color: #b91c1c;
-  font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
   outline: none;
-  transition: all 0.14s ease;
+  transition: background-color 0.14s ease, color 0.14s ease;
+  text-align: right;
 }
 
 :global(html.dark) .cornerLogoutBtn {
-  border-color: rgb(239 68 68 / 30%);
-  background: rgb(69 10 10 / 35%);
-  color: #fca5a5;
+  color: #f87171;
 }
 
 .cornerLogoutBtn:hover {
-  background: #fee2e2;
+  background: rgb(239 68 68 / 9%);
   color: #991b1b;
 }
 
 :global(html.dark) .cornerLogoutBtn:hover {
-  background: rgb(127 29 29 / 45%);
-  color: #fecaca;
+  background: rgb(239 68 68 / 15%);
+  color: #fca5a5;
 }
 
-.cornerLogoutBtn:active {
-  box-shadow: 0 0 0 2px rgb(239 68 68 / 35%);
+.cornerLogoutIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgb(239 68 68 / 10%);
+  color: inherit;
+  flex-shrink: 0;
 }
+
+:global(html.dark) .cornerLogoutIcon {
+  background: rgb(239 68 68 / 18%);
+}
+
+.cornerLogoutText {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .headerMenuOpen::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    opacity: 0 !important;
+  }
+  .cornerBackdrop {
+    top: 54px;
+    touch-action: none;
+  }
+  .cornerCard {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 62px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 74px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 74px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px;
+    border-radius: 22px;
+    transform-origin: top center;
+  }
+  .cornerHeader {
+    padding: 6px 4px 8px;
+  }
+  .cornerUserLink {
+    gap: 12px;
+    padding: 8px;
+  }
+  .cornerAvatarWrap span {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+  .cornerUserDetails {
+    flex: 1;
+  }
+  .cornerUserName {
+    font-size: 14px;
+  }
+  .cornerUserRole,
+  .cornerUserEmail {
+    font-size: 11px;
+  }
+  .cornerCloseBtn {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .cornerDivider {
+    margin: 8px 4px;
+  }
+  .cornerNav {
+    gap: 4px;
+  }
+  .cornerNavItem {
+    min-height: 52px;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 13px;
+  }
+  .cornerNavItem:active {
+    background: var(--subtle);
+  }
+  .cornerNavIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+  .cornerNavTitle {
+    font-size: 13.5px;
+  }
+  .cornerNavSub {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .cornerLogoutBtn {
+    min-height: 48px;
+    padding: 10px 12px;
+    border-radius: 13px;
+    gap: 12px;
+  }
+  .cornerLogoutIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+  .cornerLogoutText {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 761px) {
+  .accountNavigation::after { display: none; }
+}
+
+/* Compact account workspace, scoped to preserve the dashboard. */
+.compactAccount { gap: 16px; }
+.compactAccount .profileProgress { padding: 16px 20px; margin-bottom: 0; }
+.compactAccount .panel { padding: 18px 20px; }
+.compactAccount .formGrid { gap: 22px 14px; }
+.overviewCards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 18px; }
+.overviewCard { display: grid; grid-template-columns: 22px 1fr; gap: 5px 10px; padding: 14px; text-align: start; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; }
+.overviewCard small, .overviewCard span { grid-column: 2; color: var(--muted); font-size: 11px; }
+.overviewCard:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 3px; }
+@media (min-width: 1200px) { .compactAccount .formGrid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 600px) { .overviewCards { grid-template-columns: 1fr; } .compactAccount .panel { padding: 16px; } }

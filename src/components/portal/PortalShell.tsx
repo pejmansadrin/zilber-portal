@@ -4,36 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutGrid, UserRound, LogOut } from "lucide-react";
+import { LayoutGrid, UserRound, ShieldCheck, LogOut, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Loader from "@/components/ui/loader-4";
+import { accountSectionHref } from "@/lib/account/routes";
+import { ProfileImage } from "./ProfileImage";
 import { createClient } from "@/lib/supabase/client";
 import s from "./Portal.module.css";
 
-export function Avatar({
-  name,
-  src,
-  small = false,
-}: {
+export function Avatar({ name, src, gender, small = false }: {
   name: string;
   src?: string | null;
+  gender?: string | null;
   small?: boolean;
 }) {
-  return (
-    <span className={small ? s.miniAvatar : s.avatar}>
-      {src ? (
-        <Image
-          src={src}
-          alt={`تصویر ${name}`}
-          width={90}
-          height={90}
-          unoptimized
-        />
-      ) : (
-        name.trim().charAt(0) || <UserRound size={small ? 16 : 24} />
-      )}
-    </span>
-  );
+  return <span className={small ? s.miniAvatar : s.avatar}>
+    <ProfileImage src={src} gender={gender} alt={`تصویر ${name}`} width={90} height={90} />
+  </span>;
 }
 
 export function PortalShell({
@@ -42,6 +29,8 @@ export function PortalShell({
   avatar,
   email,
   role,
+  accessRole,
+  gender,
 }: {
   children: React.ReactNode;
   name: string;
@@ -49,6 +38,8 @@ export function PortalShell({
   variant?: "default" | "dashboard";
   email?: string;
   role?: string;
+  accessRole?: string | null;
+  gender?: string | null;
 }) {
   const path = usePathname();
   const router = useRouter();
@@ -115,7 +106,7 @@ export function PortalShell({
       </a>
 
       {/* Slim, Edge-to-Edge Sticky Header with Circular Controls */}
-      <header className={s.header}>
+      <header className={`${s.header} ${menuMounted ? s.headerMenuOpen : ""}`}>
         <div className={s.headerInner}>
           {/* Brand Logo (Right side in RTL) */}
           <Link href="/dashboard" className={s.brand}>
@@ -134,7 +125,7 @@ export function PortalShell({
 
           {/* Minimal Circular Controls on Left (RTL end) */}
           <div className={s.headerActions}>
-            <ThemeToggle className="!rounded-full" />
+            <ThemeToggle className={s.themeToggleButton} />
             <div className={s.profileTriggerWrap}>
               <button
                 type="button"
@@ -144,7 +135,7 @@ export function PortalShell({
                 aria-expanded={menuMounted}
                 aria-haspopup="menu"
               >
-                <Avatar name={name} src={avatar} small />
+                <Avatar name={name} src={avatar} gender={gender} small />
               </button>
 
               {menuMounted && (
@@ -159,30 +150,63 @@ export function PortalShell({
                     role="menu"
                     aria-label="منوی حساب کاربری و دسترسی سریع"
                   >
-                    {/* User Identity Section */}
-                    <div className={s.cornerUserSection}>
-                      <div className={s.cornerAvatarWrap}>
-                        <Avatar name={name} src={avatar} small />
-                      </div>
-                      <div className={s.cornerUserDetails}>
-                        <span id="corner-user-name" className={s.cornerUserName}>
-                          {name}
-                        </span>
-                        <span className={s.cornerUserRole}>
-                          {role || "همکار زیلبر"}
-                        </span>
-                        {email && (
-                          <span className={s.cornerUserEmail} dir="ltr">
-                            {email}
+                    {/* User Identity Section - Integrated Header */}
+                    <div className={s.cornerHeader}>
+                      <Link
+                        href={accountSectionHref()}
+                        onClick={closeMenu}
+                        className={s.cornerUserLink}
+                        title="مشاهده و ویرایش پرونده پرسنلی"
+                      >
+                        <div className={s.cornerAvatarWrap}>
+                          <Avatar name={name} src={avatar} gender={gender} small />
+                        </div>
+                        <div className={s.cornerUserDetails}>
+                          <span id="corner-user-name" className={s.cornerUserName}>
+                            {name}
                           </span>
-                        )}
-                      </div>
+                          <span className={s.cornerUserRole}>
+                            {role || "همکار زیلبر"}
+                          </span>
+                          {email && (
+                            <span className={s.cornerUserEmail} dir="ltr">
+                              {email}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                      <button
+                        type="button"
+                        className={s.cornerCloseBtn}
+                        onClick={closeMenu}
+                        aria-label="بستن منو"
+                      >
+                        <X size={16} aria-hidden="true" />
+                      </button>
                     </div>
 
                     <div className={s.cornerDivider} />
 
-                    {/* Merged Navigation Items */}
+                    {/* Unified Navigation Items */}
                     <nav className={s.cornerNav} aria-label="ناوبری پورتال">
+                      {accessRole === "super_admin" && (
+                        <Link
+                          href="/people"
+                          onClick={closeMenu}
+                          className={`${s.cornerNavItem} ${path.startsWith("/people") ? s.cornerNavItemActive : ""}`}
+                          role="menuitem"
+                          aria-current={path.startsWith("/people") ? "page" : undefined}
+                        >
+                          <span className={s.cornerNavIcon}>
+                            <ShieldCheck size={15} aria-hidden="true" />
+                          </span>
+                          <div className={s.cornerNavMeta}>
+                            <span className={s.cornerNavTitle}>{accessRole === "super_admin" ? "پنل سوپرادمین" : "مدیریت پرونده‌ها"}</span>
+                            <span className={s.cornerNavSub}>{accessRole === "super_admin" ? "مدیریت کاربران و همهٔ پرونده‌ها" : "اطلاعات همکاری و پرونده‌های پرسنلی"}</span>
+                          </div>
+                          {path.startsWith("/people") && <span className={s.cornerActiveIndicator} />}
+                        </Link>
+                      )}
                       <Link
                         href="/dashboard"
                         onClick={closeMenu}
@@ -193,7 +217,7 @@ export function PortalShell({
                         role="menuitem"
                       >
                         <span className={s.cornerNavIcon}>
-                          <LayoutGrid size={16} />
+                          <LayoutGrid size={15} />
                         </span>
                         <div className={s.cornerNavMeta}>
                           <span className={s.cornerNavTitle}>صفحهٔ اصلی</span>
@@ -205,7 +229,7 @@ export function PortalShell({
                       </Link>
 
                       <Link
-                        href="/account"
+                        href={accountSectionHref()}
                         onClick={closeMenu}
                         prefetch={true}
                         className={`${s.cornerNavItem} ${
@@ -214,7 +238,7 @@ export function PortalShell({
                         role="menuitem"
                       >
                         <span className={s.cornerNavIcon}>
-                          <UserRound size={16} />
+                          <UserRound size={15} />
                         </span>
                         <div className={s.cornerNavMeta}>
                           <span className={s.cornerNavTitle}>حساب من</span>
@@ -237,12 +261,14 @@ export function PortalShell({
                       role="menuitem"
                       aria-busy={busy}
                     >
-                      {busy ? (
-                        <Loader size={14} decorative />
-                      ) : (
-                        <LogOut size={14} aria-hidden="true" />
-                      )}
-                      <span>خروج از حساب کاربری</span>
+                      <span className={s.cornerLogoutIcon}>
+                        {busy ? (
+                          <Loader size={14} decorative />
+                        ) : (
+                          <LogOut size={14} aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className={s.cornerLogoutText}>خروج از حساب کاربری</span>
                     </button>
                   </div>
                 </>

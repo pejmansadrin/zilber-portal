@@ -275,6 +275,11 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      portal_access: { Args: Record<string, never>; Returns: string };
+      organization_directory: { Args: Record<string, never>; Returns: import('./employee').EmployeeRecord[] };
+      organization_records: { Args: { target: number; area: string }; Returns: import('./employee').EmployeeRecord[] };
+      save_organization: { Args: { target: number; area: string; record_id: number | null; patch: Json }; Returns: undefined };
+
       is_manager_or_hr: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

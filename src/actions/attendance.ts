@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { AttendanceLog, AttendanceStatus, LeaveRequest, MissionRequest, AttendanceAdjustment } from '@/types/attendance';
+import { profilePhotoHref } from '@/lib/profile-photo';
 
 export async function getSessionUser() {
   const supabase = await createClient();
@@ -18,7 +19,11 @@ export async function getSessionUser() {
     .eq('id', user.id)
     .single();
 
-  return { user, profile };
+  const { data: accessRole, error: accessError } = await supabase.rpc("portal_access", {});
+  if (accessError) return null;
+  const { data: employee } = await supabase.from("employees").select("photo_storage_path,gender").eq("auth_user_id", user.id).maybeSingle();
+  const avatar = employee?.photo_storage_path?.startsWith(user.id + "/") ? profilePhotoHref(employee.photo_storage_path) : null;
+  return { user, profile, avatar, gender: employee?.gender, isSuperAdmin: accessRole === "super_admin" };
 }
 
 export async function clockIn(formData: { locationType?: 'office' | 'remote' | 'field'; notes?: string }) {

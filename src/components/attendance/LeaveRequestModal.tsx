@@ -52,7 +52,7 @@ export function LeaveRequestModal({ isOpen, onClose, onSuccess }: LeaveRequestMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-scrim animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 text-right">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-[#16214f] dark:text-blue-400 font-bold text-lg">
