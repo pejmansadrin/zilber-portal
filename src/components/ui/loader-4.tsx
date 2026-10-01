@@ -57,6 +57,7 @@ const StyledWrapper = styled.span<{ $size: number }>`
   vertical-align: middle;
 
   .loader {
+    --loader-color: var(--accent, var(--brand-accent, #2563eb));
     --cell-spacing: 1px;
     --cells: 3;
     --cell-size: calc(
@@ -95,31 +96,31 @@ const StyledWrapper = styled.span<{ $size: number }>`
     animation-delay: 400ms;
   }
   .cell:nth-child(1) {
-    --cell-color: #00ff87;
+    --cell-color: var(--loader-color);
   }
   .cell:nth-child(2) {
-    --cell-color: #0cfd95;
+    --cell-color: color-mix(in srgb, var(--loader-color) 95%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(3) {
-    --cell-color: #17fba2;
+    --cell-color: color-mix(in srgb, var(--loader-color) 90%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(4) {
-    --cell-color: #23f9b2;
+    --cell-color: color-mix(in srgb, var(--loader-color) 85%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(5) {
-    --cell-color: #30f7c3;
+    --cell-color: color-mix(in srgb, var(--loader-color) 80%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(6) {
-    --cell-color: #3df5d4;
+    --cell-color: color-mix(in srgb, var(--loader-color) 75%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(7) {
-    --cell-color: #45f4de;
+    --cell-color: color-mix(in srgb, var(--loader-color) 70%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(8) {
-    --cell-color: #53f1f0;
+    --cell-color: color-mix(in srgb, var(--loader-color) 65%, var(--brand-accent, #2563eb));
   }
   .cell:nth-child(9) {
-    --cell-color: #60efff;
+    --cell-color: color-mix(in srgb, var(--loader-color) 60%, var(--brand-accent, #2563eb));
   }
 
   .loader-label {

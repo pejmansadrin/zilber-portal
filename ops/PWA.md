@@ -2,7 +2,7 @@
 
 The production app at https://portal.zilber.tech uses the App Router manifest,
 brand icons, standalone display mode, navy theme/status-bar color and a short
-logo splash on a fresh standalone launch. Client-side navigation does not replay
+theme-aware logo splash on a fresh standalone launch. Client-side navigation does not replay
 the splash. Zoom remains enabled; safe-area insets protect controls on phones.
 
 Mobile browser tabs display an installation gate before first paint. Chromium
