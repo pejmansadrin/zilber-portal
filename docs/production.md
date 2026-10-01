@@ -48,7 +48,18 @@ Protected GitLab project variables:
 
 Only the two public Supabase configuration values are supplied at build time and on the runtime host. No service-role key, database password or employee credentials are included in artifacts. No database reset, local seed or automatic schema migration runs during deployment. The existing cloud schema and RLS remain authoritative; review future migrations separately before application releases.
 
-This host exposes a baseline KVM CPU without SSE4.2. The pinned `@img/sharp-wasm32` package provides Sharp's official fallback on this CPU; native Sharp remains available on supported machines. The standalone trace explicitly includes the Wasm package and its runtime. CI exercises actual JPEG/PNG/WebP processing, orientation, compression and invalid-file rejection before deploying.
+This host exposes a baseline KVM CPU without SSE4.2 or Wasm SIMD. `ops/deploy/node-image.Dockerfile` compiles libvips 8.18.6 for baseline x86-64 from a checksum-verified upstream source archive. The `builder` target installs the compiler and pinned Node addon tools; the `runtime` target contains the compiled libraries and runtime dependencies. CI builds the current Sharp addon against that library, and the standalone trace includes its compiled addon. CI exercises actual JPEG/PNG/WebP processing, orientation, compression and invalid-file rejection before deploying.
+
+Platform image recovery (run administratively on the host, using a dedicated build directory):
+
+```sh
+curl -fLO https://github.com/libvips/libvips/releases/download/v8.18.6/vips-8.18.6.tar.xz
+# Place node-image.Dockerfile in this directory as Dockerfile; it verifies the archive checksum.
+sudo docker build --target builder -t zilber-portal-node-build:24-vips8.18.6 .
+sudo docker build --target runtime -t zilber-portal-node-runtime:24-vips8.18.6 .
+```
+
+The dedicated runner uses these local platform images with `if-not-present` pull policy; prepare both images before starting CI after host recovery. Application releases still build separately for every version tag. Do not overwrite platform image tags with incompatible libraries while older releases remain in use; version platform tags when upgrading.
 
 `/api/health` returns status, deployed version and commit without user information. It checks application configuration; it does not claim database availability. Account requests retain session checks and ownership/RLS.
 

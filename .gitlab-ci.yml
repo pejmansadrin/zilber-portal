@@ -7,7 +7,7 @@ workflow:
 stages: [build, deploy, release]
 
 default:
-  image: node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+  image: zilber-portal-node-build:24-vips8.18.6
   tags: [zilber-portal]
   interruptible: true
 
@@ -19,11 +19,13 @@ variables:
 build:
   stage: build
   cache:
+    when: always
     key:
       files: [package-lock.json]
     paths: [.npm/]
   script:
     - npm ci --prefer-offline --no-audit --no-fund
+    - npm explore sharp -- npm run build
     - node ops/qa/profile-photo.mjs
     - npm run build
     - node ops/ci/package-release.mjs
