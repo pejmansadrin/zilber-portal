@@ -66,6 +66,7 @@ try {
   await call('Page.bringToFront');
   await call('Runtime.enable');
   await call('Network.enable');
+  await call('Network.clearBrowserCache');
   await call('Network.setCookies', { cookies: [...jar].map(([name, value]) => ({ name, value, url: base, path: '/', sameSite: 'Lax' })) });
   await call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
   await call('Page.navigate', { url: base + '/people' });
@@ -100,7 +101,18 @@ try {
   assert.equal(await evaluate(`document.activeElement.id`), 'people-search');
   assert.equal(navigations, initialNavigations, 'Search must not reload the document');
   assert.equal(dialogs, 0, 'Search must not trigger the unsaved-record guard');
-  assert.equal(requests.slice(phaseRequests).filter(event => event.type === 'Document' || event.request.url.includes('_rsc=') || event.request.method !== 'GET').length, 0, 'No document/RSC/mutation requests while searching');
+  // Initial navigation links can still prefetch in the background. Such
+  // requests do not navigate or replace the open record and are not search.
+  const isPrefetch = event => Object.entries(event.request.headers).some(([name, value]) =>
+    (name.toLowerCase() === 'next-router-prefetch' && value === '1') ||
+    name.toLowerCase() === 'next-router-segment-prefetch' ||
+    (['purpose', 'sec-purpose'].includes(name.toLowerCase()) && String(value).includes('prefetch')),
+  );
+  const searchRequests = requests.slice(phaseRequests).filter(event =>
+    event.type === 'Document' || event.request.method !== 'GET' ||
+    (event.request.url.includes('_rsc=') && !isPrefetch(event)),
+  );
+  assert.equal(searchRequests.length, 0, 'Search must not navigate, refresh server components or mutate data');
   assert.equal(await evaluate(`document.querySelector('#managed-panel-employment input[name="job_title"]') === window.__recordInput`), true);
   assert.equal(await evaluate(`document.querySelector('#managed-panel-employment input[name="job_title"]').value`), edited);
   // Selecting another person still requires the existing unsaved-record guard.
