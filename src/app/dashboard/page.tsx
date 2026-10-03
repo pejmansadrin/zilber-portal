@@ -29,12 +29,20 @@ export const metadata = { title: "صفحهٔ اصلی | پورتال زیلبر"
 
 const tools = [
   {
+    href: "/attendance",
+    title: "حضور و غیاب",
+    text: "ثبت ورود و خروج و مرور ساعات حضور؛ نسخهٔ اولیه.",
+    icon: Clock3,
+    label: "مشاهدهٔ حضور و غیاب",
+    number: "۰۱",
+  },
+  {
     href: accountSectionHref(),
     title: "اطلاعات شخصی",
     text: "مشخصات فردی، تصویر حساب و اطلاعات شما.",
     icon: UserRound,
     label: "مشاهده و ویرایش",
-    number: "۰۱",
+    number: "۰۲",
   },
   {
     href: accountSectionHref("documents"),
@@ -42,7 +50,7 @@ const tools = [
     text: "دسترسی به مدارک و بارگذاری فایل‌های تازه.",
     icon: FileText,
     label: "مدیریت مدارک",
-    number: "۰۲",
+    number: "۰۳",
   },
   {
     href: accountSectionHref("career"),
@@ -50,7 +58,7 @@ const tools = [
     text: "تجربه‌های کاری، تحصیلات و مهارت‌های شما.",
     icon: GraduationCap,
     label: "تکمیل سوابق",
-    number: "۰۳",
+    number: "۰۴",
   },
   {
     href: accountSectionHref("employment"),
@@ -58,7 +66,7 @@ const tools = [
     text: "قراردادها، خدمات سازمانی و ارزیابی‌ها.",
     icon: ShieldCheck,
     label: "مشاهدهٔ پرونده",
-    number: "۰۴",
+    number: "۰۵",
   },
 ];
 const shortcuts = [
@@ -318,7 +326,7 @@ export default async function DashboardPage() {
       <aside className={d.upcoming} aria-label="خدمات در حال آماده‌سازی">
         <Clock3 size={19} aria-hidden="true" />
         <p>
-          <strong>حضور و غیاب، مرخصی و مأموریت</strong>
+          <strong>مرخصی و مأموریت</strong>
           <span>به‌زودی به میز کار شما اضافه می‌شوند.</span>
         </p>
         <span className={d.upcomingBadge}>در حال آماده‌سازی</span>

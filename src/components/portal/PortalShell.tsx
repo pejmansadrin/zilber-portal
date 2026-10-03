@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutGrid, UserRound, ShieldCheck, LogOut, X } from "lucide-react";
+import { LayoutGrid, UserRound, ShieldCheck, LogOut, X, Clock3 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Loader from "@/components/ui/loader-4";
 import { accountSectionHref } from "@/lib/account/routes";
@@ -189,6 +189,11 @@ export function PortalShell({
 
                     {/* Unified Navigation Items */}
                     <nav className={s.cornerNav} aria-label="ناوبری پورتال">
+                      <Link href="/attendance" onClick={closeMenu} role="menuitem" aria-current={path === "/attendance" ? "page" : undefined} className={`${s.cornerNavItem} ${path === "/attendance" ? s.cornerNavItemActive : ""}`}>
+                        <span className={s.cornerNavIcon}><Clock3 size={15} /></span>
+                        <div className={s.cornerNavMeta}><span className={s.cornerNavTitle}>حضور و غیاب</span><span className={s.cornerNavSub}>ثبت تردد و ساعات حضور · نسخهٔ اولیه</span></div>
+                        {path === "/attendance" && <span className={s.cornerActiveIndicator} />}
+                      </Link>
                       {accessRole === "super_admin" && (
                         <Link
                           href="/people"
