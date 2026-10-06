@@ -1,3 +1,5 @@
+import { registrationDecision } from "./registration-time";
+
 export type WorkMode = "office" | "remote" | "mission";
 export type WorkSession = { start: string; end: string | null; mode: WorkMode };
 export type WorkDay = { date: string; start: string; end: string | null; sessions: WorkSession[] };
@@ -6,9 +8,11 @@ export const modeLabel = (mode: WorkMode) => ({ office: "عادی", remote: "د�
 export function asWorkDay(entry: { date: string; start: string; end: string | null } | null): WorkDay | null {
   return entry ? { ...entry, sessions: [{ start: entry.start, end: entry.end, mode: "office" }] } : null;
 }
-export function transitionWork(day: WorkDay | null, date: string, at: string, now: string, action: "start" | "end", mode: WorkMode): WorkDay {
+export function transitionWork(day: WorkDay | null, date: string, at: string, now: string, action: "start" | "end", mode: WorkMode, acknowledgeEarlyExit = false): WorkDay {
   const stamp = Date.parse(at);
-  if (!Number.isFinite(stamp) || stamp > Date.parse(now)) throw new Error("ساعت نمی‌تواند در آینده باشد.");
+  const decision = registrationDecision(at, now, action);
+  if (decision === "request") throw new Error("ورود بیش از ۱۵ دقیقه قبل نیازمند تأیید مدیر است.");
+  if (decision === "warning" && !acknowledgeEarlyExit) throw new Error("ثبت خروج زودتر نیازمند تأیید هشدار است.");
   if (day && day.date !== date) throw new Error("بازهٔ روز قبل را ابتدا تعیین تکلیف کنید.");
   const sessions = day?.sessions || [];
   const base = sessions.find(session => session.mode !== "mission" && !session.end);

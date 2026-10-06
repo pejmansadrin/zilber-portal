@@ -171,7 +171,7 @@ export default async function DashboardPage() {
             {accessRole === "super_admin" && (
               <Link href="/people" className={`${s.button} ${d.primaryAction}`}>
                 <ShieldCheck size={17} aria-hidden="true" />
-                {accessRole === "super_admin" ? "پنل سوپرادمین" : "مدیریت پرونده‌ها"}
+                {accessRole === "super_admin" ? "پنل مدیریت" : "مدیریت پرونده‌ها"}
                 <ArrowLeft size={16} aria-hidden="true" />
               </Link>
             )}

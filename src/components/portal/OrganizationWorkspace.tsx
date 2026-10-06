@@ -9,6 +9,7 @@ import { Avatar } from "./PortalShell";
 import { ManagedRecordDetails } from "./ManagedRecordDetails";
 import s from "./Portal.module.css";
 import p from "./OrganizationWorkspace.module.css";
+import back from "@/components/navigation/MobileBack.module.css";
 import { profilePhotoHref } from "@/lib/profile-photo";
 
 const sections = [
@@ -61,6 +62,13 @@ export function OrganizationWorkspace({ employee, records, role, directory }: {
     ? profilePhotoHref(employee.photo_storage_path) : null;
 
   return <div className={`${s.compactAccount} ${p.workspace}`}>
+    {active !== "overview" && <button type="button" className={back.sectionBack} onClick={() => {
+      if (dirty.size && !confirm("تغییرات ذخیره‌نشدهٔ این بخش کنار گذاشته شود؟")) return;
+      setDirty(new Set());
+      setActive("overview");
+    }} aria-label="برگشت به خلاصهٔ پرونده">
+      <ArrowLeft size={18} aria-hidden="true" style={{ transform: "rotate(180deg)" }} />برگشت به خلاصهٔ پرونده
+    </button>}
     <section className={`${s.glass} ${p.header}`} aria-label="پروندهٔ کامل کاربر">
       <div className={p.identity}>
         <Avatar name={String(employee.full_name)} gender={typeof employee.gender === "string" ? employee.gender : null} src={photo} small />
@@ -109,7 +117,7 @@ export function OrganizationWorkspace({ employee, records, role, directory }: {
       </section>}
       {role === "super_admin" && personalSections.filter(personal => personal.id === section.id || (section.id === "finance" && personal.id === "insurance")).map(personal =>
         <section key={personal.id} className={`${s.glass} ${s.panel} ${p.panel}`}>
-          <div className={p.sectionHeading}><h3>{personal.title}</h3><span>ویرایش توسط سوپرادمین</span></div>
+          <div className={p.sectionHeading}><h3>{personal.title}</h3><span>ویرایش توسط مدیریت</span></div>
           <EditorForm fields={personal.fields} record={employee} action={saveManagedPersonal.bind(null, Number(employee.id), personal.id)} formKey={`personal-${personal.id}`} onDirty={onDirty} />
         </section>)}
       {available.filter(collection => collection.group === section.id).map(collection => <details key={collection.id} className={`${s.glass} ${p.collection}`}>

@@ -76,14 +76,14 @@ export function Header({ profile, authenticated = false, isSuperAdmin = false, a
                   className="px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors text-blue-200 hover:text-white flex items-center gap-1.5 bg-blue-500/20"
                 >
                   <ShieldCheck className="w-4 h-4 text-blue-300" />
-                  پنل سوپرادمین
+                  پنل مدیریت
                 </Link>
               )}
             </nav>
           </div>
 
           {/* User profile & actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             {profile ? (
               <div className="flex items-center gap-3">

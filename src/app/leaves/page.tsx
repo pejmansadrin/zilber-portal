@@ -1,5 +1,6 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
+import { MobileBack } from '@/components/navigation/MobileBack';
 import { getSessionUser } from '@/actions/attendance';
 import { createClient } from '@/lib/supabase/server';
 import { DashboardActions } from '@/components/attendance/DashboardActions';
@@ -80,7 +81,8 @@ export default async function LeavesPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
       <Header profile={session.profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8 sm:py-8 space-y-5 sm:space-y-8">
+          <MobileBack />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white">

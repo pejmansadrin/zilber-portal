@@ -1,49 +1,89 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { Check, ChevronDown, Clock3 } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Check, ChevronDown, Clock3, X } from "lucide-react";
 import { MagneticTimeWheel } from "./MagneticTimeWheel";
 import s from "./TimePicker.module.css";
 
 const two = (value: number) => String(value).padStart(2, "0");
 const fa = (value: string) => value.replace(/\d/g, digit => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 
-export function TimePicker({ value, onChange, disabled = false, describedBy }: {
-  value: string; onChange: (value: string) => void; disabled?: boolean; describedBy?: string;
+export function TimePicker({ value, onChange, allowedTimes, disabled = false, describedBy, requestMode = false, onRequestModeChange, requestFields, hint, label = "ساعت · تهران" }: {
+  value: string; onChange: (value: string) => void; allowedTimes: string[]; disabled?: boolean; describedBy?: string;
+  hint?: string; requestMode?: boolean; onRequestModeChange?: (checked: boolean) => void; requestFields?: ReactNode; label?: string;
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
-  const root = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const [hour = "00", minute = "00"] = value.split(":");
+  const displayValue = allowedTimes.includes(value) ? value : allowedTimes.at(-1)!;
+  const [hour = "00", minute = "00"] = displayValue.split(":");
+  const hours = [...new Set(allowedTimes.map(time => Number(time.split(":")[0])))];
+  const minutes = allowedTimes.filter(time => time.startsWith(`${hour}:`)).map(time => Number(time.split(":")[1]));
+  function selectHour(nextHour: number) {
+    const times = allowedTimes.filter(time => time.startsWith(`${two(nextHour)}:`));
+    const nearest = times.reduce((best, next) => Math.abs(Number(next.split(":")[1]) - Number(minute)) < Math.abs(Number(best.split(":")[1]) - Number(minute)) ? next : best);
+    onChange(nearest);
+  }
+  function close() {
+    dialog.current?.close();
+    setOpen(false);
+    trigger.current?.focus({ preventScroll: true });
+  }
   useEffect(() => {
-    if (!open || disabled) return;
+    const element = dialog.current;
+    if (!element || !open || disabled) return;
+    const viewport = window.visualViewport;
+    function fitViewport() {
+      if (!element) return;
+      element.style.setProperty("--picker-vh", `${viewport?.height ?? window.innerHeight}px`);
+      element.style.setProperty("--picker-vw", `${viewport?.width ?? document.documentElement.clientWidth}px`);
+      element.style.setProperty("--picker-top", `${viewport?.offsetTop ?? 0}px`);
+      element.style.setProperty("--picker-left", `${viewport?.offsetLeft ?? 0}px`);
+    }
+    fitViewport();
+    // Native modal top layer avoids clipping and stacking contexts in the portal shell.
+    if (!element.open) element.showModal();
+    const previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     const frame = requestAnimationFrame(() => {
-      root.current?.querySelector<HTMLElement>('[role="spinbutton"]')?.focus({ preventScroll: true });
+      const wheel = element.querySelector<HTMLElement>('[role="spinbutton"]');
+      wheel?.focus({ preventScroll: true });
     });
-    function outside(event: PointerEvent) {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    }
-    function escape(event: KeyboardEvent) {
-      if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); }
-    }
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", escape);
+    viewport?.addEventListener("resize", fitViewport);
+    viewport?.addEventListener("scroll", fitViewport);
+    window.addEventListener("resize", fitViewport);
     return () => {
       cancelAnimationFrame(frame);
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", escape);
+      viewport?.removeEventListener("resize", fitViewport);
+      viewport?.removeEventListener("scroll", fitViewport);
+      window.removeEventListener("resize", fitViewport);
+      document.documentElement.style.overflow = previousOverflow;
+      if (element.open) element.close();
     };
-  }, [open, disabled, id]);
-  return <div className={s.picker} ref={root} onBlur={event => {
-    if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false);
-  }}>
-    <span id={`${id}-label`} className={s.label}>ساعت · تهران</span>
-    <button ref={trigger} type="button" className={s.trigger} disabled={disabled} aria-labelledby={`${id}-label ${id}-value`} aria-describedby={describedBy} aria-haspopup="dialog" aria-expanded={open && !disabled} aria-controls={`${id}-panel`} onClick={() => setOpen(!open)}><Clock3 size={17} /><strong id={`${id}-value`} dir="ltr">{fa(value)}</strong><ChevronDown size={15} className={open ? s.rotated : ""} /></button>
-    <input className={s.mobileInput} type="time" step="60" value={value} onChange={event => onChange(event.target.value)} disabled={disabled} aria-labelledby={`${id}-label`} aria-describedby={describedBy} />
-    {open && !disabled && <div id={`${id}-panel`} className={s.panel} role="dialog" aria-label="انتخاب ساعت و دقیقه">
-      <div className={s.magneticColumns} dir="ltr"><MagneticTimeWheel title="ساعت" count={24} value={Number(hour)} onChange={hour => onChange(`${two(hour)}:${minute}`)} /><span className={s.wheelSeparator}>:</span><MagneticTimeWheel title="دقیقه" count={60} value={Number(minute)} onChange={minute => onChange(`${hour}:${two(minute)}`)} /></div>
-      <button className={s.done} type="button" onClick={() => { setOpen(false); trigger.current?.focus(); }}><Check size={16} />انتخاب ساعت</button>
-    </div>}
+  }, [open, disabled]);
+  return <div className={s.picker}>
+    <span id={`${id}-label`} className={s.label}>{label}</span>
+    <button ref={trigger} type="button" className={s.trigger} disabled={disabled} aria-labelledby={`${id}-label ${id}-value`} aria-describedby={describedBy} aria-haspopup="dialog" aria-expanded={open && !disabled} aria-controls={`${id}-panel`} onClick={() => setOpen(true)}><Clock3 size={17} /><strong id={`${id}-value`} dir="ltr">{fa(value)}</strong><ChevronDown size={15} className={open ? s.rotated : ""} /></button>
+    <dialog ref={dialog} id={`${id}-panel`} className={s.panel} dir="rtl" aria-labelledby={`${id}-title`} aria-describedby={`${id}-hint`}
+      onCancel={event => { event.preventDefault(); close(); }}
+      onClose={() => { if (!dialog.current?.open) setOpen(false); }}>
+      <header className={s.dialogHeader}>
+        <span className={s.dialogIcon} aria-hidden="true"><Clock3 size={20} /></span>
+        <div><h2 id={`${id}-title`}>{requestMode ? "ساعت درخواستی" : "انتخاب ساعت"}</h2><p>به وقت تهران</p></div>
+        <button type="button" className={s.close} aria-label="بستن انتخاب‌گر ساعت" onClick={close}><X size={19} /></button>
+      </header>
+      <div className={s.dialogBody}>
+        <div className={s.magneticColumns} dir="ltr"><MagneticTimeWheel title="ساعت" count={24} values={hours} value={Number(hour)} onChange={selectHour} /><span className={s.wheelSeparator}>:</span><MagneticTimeWheel title="دقیقه" count={60} values={minutes} value={Number(minute)} onChange={minute => onChange(`${hour}:${two(minute)}`)} /></div>
+        <p id={`${id}-hint`} className={s.limitHint}>{hint ?? (requestMode ? "این ساعت پس از تأیید مدیریت اعمال می‌شود." : "از ۱۵ دقیقهٔ گذشته تا همین لحظه")}</p>
+        {onRequestModeChange && <label className={`${s.requestToggle} ${requestMode ? s.requestEnabled : ""}`}><input type="checkbox" checked={requestMode} onChange={event => onRequestModeChange(event.target.checked)} aria-controls={`${id}-request`} /><span><strong>ثبت ساعت با تأیید مدیریت</strong><small>درخواست ساعت امروز خارج از بازهٔ ۱۵ دقیقه</small></span></label>}
+        <div id={`${id}-request`} className={s.requestReveal} data-open={requestMode} inert={!requestMode} aria-hidden={!requestMode}>
+          <div className={s.requestRevealInner}><div className={s.requestFields}>{requestFields}</div></div>
+        </div>
+      </div>
+      <footer className={s.dialogFooter}>
+        <button className={s.done} type="button" onClick={() => { onChange(displayValue); close(); }}><Check size={17} />{requestMode ? "انتخاب ساعت و ادامهٔ درخواست" : "انتخاب ساعت"}</button>
+      </footer>
+    </dialog>
   </div>;
 }

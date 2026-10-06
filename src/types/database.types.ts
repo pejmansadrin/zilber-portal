@@ -11,6 +11,8 @@ export type Json =
 export interface Database {
   public: {
     Tables: EmployeeTables & {
+      portal_work_days: { Row: import('./attendance-review').StoredWorkDay; Insert: never; Update: never; Relationships: [] };
+      portal_time_requests: { Row: import('./attendance-review').TimeRequest; Insert: never; Update: never; Relationships: [] };
       profiles: {
         Row: {
           id: string;
@@ -275,6 +277,11 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      register_attendance_checked: { Args: { at_time: string; event: string; work_mode: string; acknowledge_early_exit: boolean }; Returns: Json };
+      register_attendance: { Args: { at_time: string; event: string; work_mode: string }; Returns: Json };
+      request_attendance_interval: { Args: { day_date: string; work_mode: string; at_time: string; until_time: string; explanation: string }; Returns: string };
+      request_attendance: { Args: { day_date: string; request_kind: string; event: string | null; work_mode: string | null; at_time: string | null; edit_index: number | null; explanation: string }; Returns: string };
+      review_attendance: { Args: { request_id: string; decision: string; note: string }; Returns: undefined };
       portal_access: { Args: Record<string, never>; Returns: string };
       organization_directory: { Args: Record<string, never>; Returns: import('./employee').EmployeeRecord[] };
       organization_records: { Args: { target: number; area: string }; Returns: import('./employee').EmployeeRecord[] };

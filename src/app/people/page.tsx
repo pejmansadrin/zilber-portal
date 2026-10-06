@@ -45,14 +45,14 @@ export default async function PeoplePage({ searchParams }: {
     })) : [];
 
   return <PortalShell gender={employee?.gender} accessRole={role} name={employee?.full_name || user.email || "زیلبر"} avatar={avatar}
-    role={role === "super_admin" ? "سوپرادمین" : role === "hr_admin" ? "ادمین منابع انسانی" : role === "manager" ? "سرپرست" : "همکار زیلبر"}>
+    role={role === "super_admin" ? "مدیریت" : role === "hr_admin" ? "ادمین منابع انسانی" : role === "manager" ? "سرپرست" : "همکار زیلبر"}>
     <div className={`${s.pageTitle} ${p.pageTitle}`}>
-      <div><h1 className={s.heading}>{role === "super_admin" ? "پنل سوپرادمین" : "مدیریت پرونده‌ها"}</h1>
+      <div><h1 className={s.heading}>{role === "super_admin" ? "پنل مدیریت" : "مدیریت پرونده‌ها"}</h1>
         <p className={s.muted}>مدیریت کاربران، اطلاعات شخصی و پرونده‌های همکاری</p>
       </div>
-      <Link href="/account" className={s.secondary}>حساب من</Link>
+      <div className={s.secondary}>{permitted && <Link href="/admin/attendance">حضور و غیاب و درخواست‌ها</Link>} · <Link href="/account">حساب من</Link></div>
     </div>
-    {!permitted ? <p role="alert">شما به پنل سوپرادمین دسترسی ندارید.</p> :
+    {!permitted ? <p role="alert">شما به پنل مدیریت دسترسی ندارید.</p> :
       <div className={p.layout}>
         <DirectoryDisclosure selectedName={selected ? String(selected.full_name) : "کاربر موردنظر را انتخاب کنید"} defaultOpen={Boolean(query)}>
           <PeopleDirectory selectedId={selected ? String(selected.id) : undefined} directory={directory.map(person => ({

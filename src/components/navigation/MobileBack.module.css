@@ -1,0 +1,12 @@
+.mobileBack { display: none; }
+.sectionBack { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 8px; color: var(--muted); font-size: 12px; }
+.row { display: none; }
+@media (max-width: 767px) {
+  .row { display: flex; justify-content: flex-start; direction: rtl; min-height: 0; margin: 0; }
+  .row:empty { display: none; }
+  .mobileBack { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; color: inherit; text-decoration: none; }
+  .mobileBack span { display: none; }
+  .mobileBack { border: 1px solid currentColor; }
+  .mobileBack:hover { background: rgb(128 148 180 / 12%); }
+  .mobileBack:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+}

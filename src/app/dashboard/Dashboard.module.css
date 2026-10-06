@@ -995,3 +995,14 @@
     line-height: 1.6;
   }
 }
+
+@media (max-width: 680px) {
+  .pageHeading { margin: 0 2px 8px; gap: 8px; }
+  .pageHeading > div:first-child > .eyebrow { display: none; }
+  .pageHeading h1 { font-size: 20px; line-height: 1.4; }
+  .date { max-width: none; }
+  .date div > span { display: none; }
+  .welcome .welcomeText, .welcome .textLink, .welcome .accountLine { display: none; }
+  .welcome { padding: 12px 14px; }
+  .welcome .welcomeActions { margin: 8px 0 0; }
+}

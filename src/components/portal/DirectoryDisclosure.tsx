@@ -48,7 +48,7 @@ export function DirectoryDisclosure({ selectedName, children, defaultOpen = fals
       aria-labelledby={mobile && open ? `${id}-title` : undefined}>
       <section className={`${s.picker} ${open ? s.pickerOpen : ""}`}>
         <div className={`${p.sectionPickerHeader} ${s.header}`}>
-          <div><p className={p.eyebrow}>پنل سوپرادمین</p><h2 id={`${id}-title`}>انتخاب کاربر</h2></div>
+          <div><p className={p.eyebrow}>پنل مدیریت</p><h2 id={`${id}-title`}>انتخاب کاربر</h2></div>
           <button ref={closeRef} type="button" className={p.sectionPickerClose} aria-label="بستن فهرست کاربران" onClick={() => setOpen(false)}><X size={20} aria-hidden="true" /></button>
         </div>
         <div className={s.content} onClick={event => {

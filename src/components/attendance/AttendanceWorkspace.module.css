@@ -180,3 +180,39 @@
 :global(html.dark) .ganttOuter{background:#bca0e8}
 :global(html.dark) .ganttOuter.ganttLive{background:#64738e}
 @media(prefers-reduced-motion:reduce){.ganttOuter.ganttLive{transition:none}}
+.requestsHeading{margin:24px 0 16px;font-size:18px}.requestList{display:grid;gap:12px}.requestItem{border:1px solid var(--line);border-radius:14px;padding:16px;font-size:12px;line-height:2;overflow-wrap:anywhere}.requestItem>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.requestItem span{color:var(--muted)}.requestItem p{white-space:pre-wrap;margin-top:8px}.adminToolbar{display:flex;gap:16px;flex-wrap:wrap;margin:20px 0}.adminToolbar label{display:grid;gap:6px;font-size:12px;color:var(--muted)}.adminToolbar input,.adminToolbar select{background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px;font:inherit}.reviewButtons{display:flex;gap:12px;margin-top:12px}.reviewButtons button{border:1px solid var(--line);border-radius:9px;padding:9px 16px;background:var(--input);color:var(--ink);font:inherit;cursor:pointer}.reviewButtons button:first-child{background:var(--accent);color:white}.workspace button:disabled{opacity:.5;cursor:wait}.reviewNote{margin-top:12px}.adminTabs{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;font-size:13px;color:var(--accent)}
+@media(max-width:520px){.adminToolbar label,.adminToolbar input,.adminToolbar select{width:100%}}
+
+/* Stack mobile registration controls without leaving a narrow time field or wrapping actions. */
+@media(max-width:750px){
+  .registrationActionsArea{min-width:0;gap:14px}
+  .simpleRegistrationControls{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
+  .simpleRegistrationControls>div{min-width:0;width:100%}
+  .workModeOptions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .workModeOptions label{min-width:0}
+  .workModeOptions span{justify-content:center;min-height:44px;box-sizing:border-box;padding:8px 4px;font-size:11px;white-space:nowrap}
+  .registrationButtons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+  .registrationButtons .entryAction,.registrationButtons .exitAction{width:100%;min-width:0;min-height:48px;height:auto;padding:10px 8px;font-size:12px;line-height:1.7;white-space:normal}
+  .registrationButtons>button:only-child{grid-column:1/-1}
+  .registrationButtons svg{flex-shrink:0}
+}
+
+.correctionCard{margin-top:20px;padding:18px 22px}
+.correctionDisclosure>summary{display:flex;align-items:center;gap:12px;min-height:48px;list-style:none;cursor:pointer;color:var(--accent);border-radius:10px}
+.correctionDisclosure>summary::-webkit-details-marker{display:none}
+.correctionDisclosure>summary::marker{content:""}
+.correctionDisclosure>summary>span{flex:1;min-width:0}
+.correctionDisclosure>summary strong{display:block;font-size:14px;color:var(--ink)}
+.correctionDisclosure>summary small{display:block;margin-top:5px;font-size:11px;color:var(--muted);line-height:1.8}
+.correctionDisclosure>summary>svg{flex-shrink:0}
+.correctionDisclosure[open]>summary>svg:last-child{transform:rotate(180deg)}
+.correctionDisclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.correctionForm{display:grid;gap:14px;margin-top:16px;border-top:1px solid var(--line);padding:18px 6px 6px;min-width:0}
+.correctionForm>label{display:grid;gap:7px;color:var(--muted);font-size:12px}
+.correctionForm>label.correctionCheck{display:flex;align-items:center;gap:8px;min-height:44px}
+.correctionCheck input{width:18px;height:18px;accent-color:var(--accent)}
+.correctionForm textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--input);color:var(--ink);font:inherit;font-size:16px;resize:vertical;min-height:100px}
+.correctionForm .entryAction{width:100%;height:auto;min-height:46px;padding:10px}
+@media(max-width:750px){.correctionCard{padding:16px}.correctionDisclosure>summary strong{font-size:13px}}
+
+@media(max-width:650px){.workspace{gap:14px;padding-bottom:16px}.heading{gap:8px}.heading h1{font-size:22px;margin:0}.badge{display:none}.simpleRegistration{padding:14px 16px}}

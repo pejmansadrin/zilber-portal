@@ -48,10 +48,10 @@ try {
       assert(html.includes("ویرایش مشخصات"));
       assert(html.includes("جزئیات پرونده"));
     }
-    if(path==="/people?employee=3") { assert(html.includes("ویرایش توسط سوپرادمین")); assert(html.includes('name="manager_id"')); }
+    if(path==="/people?employee=3") { assert(html.includes("ویرایش توسط مدیریت")); assert(html.includes('name="manager_id"')); }
   }
   const denied=await fetch(base+"/people?employee=3",{headers:{cookie:employee.cookie}}); const deniedHtml=await denied.text();
-  assert(deniedHtml.includes("شما به پنل سوپرادمین دسترسی ندارید.")); assert(!deniedHtml.includes('name="base_amount"'));
+  assert(deniedHtml.includes("شما به پنل مدیریت دسترسی ندارید.")); assert(!deniedHtml.includes('name="base_amount"'));
   const ownerId=(await employee.client.auth.getUser()).data.user.id;
   const storagePath=`${ownerId}/qa-super-${Date.now()}.pdf`;
   assert.ifError((await employee.client.storage.from("employee-files").upload(storagePath,Buffer.from("%PDF-1.4\nQA test\n%%EOF"),{contentType:"application/pdf"})).error);

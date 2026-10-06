@@ -1,0 +1,32 @@
+.field{min-width:0;margin:12px 0;color:var(--ink)}
+.label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+.trigger{display:flex;align-items:center;gap:9px;width:100%;min-height:46px;background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font:inherit;font-size:15px;cursor:pointer}
+.trigger>svg:last-child{margin-inline-start:auto;color:var(--muted)}
+.trigger[aria-expanded="true"]{border-color:var(--accent)}
+.dialog{--calendar-vh:100dvh;--calendar-vw:100vw;--calendar-top:0px;--calendar-left:0px;position:fixed;inset:auto;top:calc(var(--calendar-top) + (var(--calendar-vh) + env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2);left:calc(var(--calendar-left) + (var(--calendar-vw) + env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))/2);transform:translate(-50%,-50%);width:min(380px,calc(var(--calendar-vw) - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-width:none;max-height:calc(var(--calendar-vh) - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));margin:0;padding:0;box-sizing:border-box;overflow:hidden;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:22px;box-shadow:0 28px 90px rgb(8 20 40 / 26%);font:inherit}
+.dialog[open]{display:flex;flex-direction:column}
+.dialog::backdrop{background:rgb(6 14 30 / 42%);backdrop-filter:blur(4px)}
+.dialogHeader{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:14px 16px;border-bottom:1px solid var(--line);color:var(--accent)}
+.dialogHeader h2{margin:0;font-size:15px;font-weight:700;color:var(--ink)}
+.close{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;margin-inline-start:auto;padding:0;border:1px solid var(--line);border-radius:11px;background:var(--subtle);color:var(--muted);cursor:pointer}
+.close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dialogBody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px;scrollbar-gutter:stable}
+.calendar{min-width:0}
+.toolbar{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.navigation{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;box-sizing:border-box;padding:0;border:1px solid var(--line);border-radius:9px;background:var(--subtle);color:var(--ink);cursor:pointer}
+.monthSelectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;flex:1;min-width:0}
+.monthSelectors button{min-width:0;width:100%;height:44px;min-height:44px;box-sizing:border-box;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--input);color:var(--ink);font:inherit;font-size:16px}
+.grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:2px;text-align:center}
+.grid th{padding:5px 0;color:var(--muted);font-size:10px;font-weight:500}
+.grid td{padding:0;height:40px}
+.day{width:100%;min-height:40px;padding:0;background:transparent;color:var(--ink);border:1px solid transparent;border-radius:9px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;cursor:pointer}
+.day:hover:not(:disabled){background:var(--subtle);border-color:var(--line)}
+.day[data-today="true"]{border-color:var(--accent)}
+.day[data-selected="true"],.day[data-selected="true"]:hover{background:var(--accent);color:var(--surface);font-weight:700}
+.field button:disabled{opacity:.35;cursor:default}
+.footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
+.footer button{padding:7px 10px;background:var(--subtle);color:var(--accent);border:1px solid var(--line);border-radius:8px;font:inherit;cursor:pointer}
+.trigger:focus-visible,.day:focus-visible,.navigation:focus-visible,.footer button:focus-visible,.monthSelectors button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:600px){.dialog{top:calc(var(--calendar-top) + var(--calendar-vh) - 12px - env(safe-area-inset-bottom,0px));transform:translate(-50%,-100%)}}
+@media(max-height:360px){.dialogHeader{padding-block:6px}.dialogBody{padding-block:8px}}

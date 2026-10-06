@@ -1,5 +1,6 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
+import { MobileBack } from '@/components/navigation/MobileBack';
 import { getSessionUser } from '@/actions/attendance';
 import { getAdminDashboardData } from '@/actions/admin';
 import { ApprovalInbox } from '@/components/admin/ApprovalInbox';
@@ -19,7 +20,8 @@ export default async function AdminPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
         <Header profile={session.profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
-        <main className="flex-1 max-w-4xl mx-auto px-4 py-16 text-center">
+        <main className="flex-1 max-w-4xl mx-auto px-4 pt-2 pb-16 sm:py-16 text-center">
+          <MobileBack />
           <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-4">
             <AlertTriangle className="w-8 h-8" />
           </div>
@@ -46,7 +48,8 @@ export default async function AdminPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans">
       <Header profile={session.profile} isSuperAdmin={session.isSuperAdmin} avatar={session.avatar} gender={session.gender} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8 sm:py-8 space-y-5 sm:space-y-8">
+          <MobileBack />
         {/* Page Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>

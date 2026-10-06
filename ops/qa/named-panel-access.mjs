@@ -44,7 +44,7 @@ for (const credential of credentials) {
       assert(html.includes("پرونده در یک نگاه"));
     }
     if (!expected) {
-      assert(html.includes("شما به پنل سوپرادمین دسترسی ندارید."));
+      assert(html.includes("شما به پنل مدیریت دسترسی ندارید."));
       // Call the action directly, without relying on visibility of its form.
       const manifest = JSON.parse(fs.readFileSync(process.env.ZILBER_QA_ACTION_MANIFEST || ".next/dev/server/server-reference-manifest.json", "utf8"));
       const actionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "saveOrganization")?.[0]; assert(actionId);

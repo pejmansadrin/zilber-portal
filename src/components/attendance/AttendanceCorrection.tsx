@@ -1,0 +1,99 @@
+'use client';
+
+import { useState, useTransition, type FormEvent } from 'react';
+import { ChevronDown, FilePlus2 } from 'lucide-react';
+import { requestWork, requestWorkInterval } from '@/actions/attendance-review';
+import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
+import { Select } from '@/components/ui/Select';
+import { TimePicker } from './TimePicker';
+import { modeLabel, type WorkDay, type WorkMode } from './work-sessions';
+import s from './AttendanceWorkspace.module.css';
+
+const clock = (stamp: string, locale = 'fa-IR') => new Date(stamp).toLocaleTimeString(locale, { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
+const nextDate = (date: string) => new Date(Date.parse(date + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
+const stamp = (date: string, value: string) => new Date(`${date}T${value}:00+03:30`);
+export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: string }) {
+  const today = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
+  const [date, setDate] = useState(today);
+  const [kind, setKind] = useState<'register' | 'correct' | 'mission' | 'late'>('register');
+  const [target, setTarget] = useState('');
+  const [mode, setMode] = useState<WorkMode>('office');
+  const [action, setAction] = useState<'both' | 'start' | 'end'>('both');
+  const [nextDay, setNextDay] = useState(false);
+  const [endNextDay, setEndNextDay] = useState(false);
+  const [value, setValue] = useState(() => clock(now, 'en-GB'));
+  const [endValue, setEndValue] = useState(() => clock(now, 'en-GB'));
+  const [reason, setReason] = useState('');
+  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
+  const [busy, startTransition] = useTransition();
+  const day = days.find(day => day.date === date);
+  const session = target === '' ? null : day?.sessions[Number(target)];
+  const workSessions = day?.sessions.map((session, index) => ({ session, index })).filter(({ session }) => session.mode !== 'mission') ?? [];
+  const pair = kind === 'mission' || (kind === 'register' && action === 'both');
+  const timeDate = nextDay ? nextDate(date) : date;
+  const endDate = endNextDay ? nextDate(timeDate) : timeDate;
+  const times = Array.from({ length: 1440 }, (_, minute) => `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`);
+  function allowedFor(dayDate: string) {
+    return times.filter(value => {
+      const at = stamp(dayDate, value).getTime();
+      return at <= Date.parse(now) && (kind !== 'mission' || !!session && session.mode !== 'mission' && at >= Date.parse(session.start) && at <= Date.parse(session.end ?? now));
+    });
+  }
+  const allowed = allowedFor(timeDate), endAllowed = allowedFor(endDate);
+  function selectKind(value: typeof kind) {
+    setKind(value); setTarget(''); setAction(value === 'correct' ? 'start' : 'both'); setNextDay(false); setEndNextDay(false); setFeedback(null);
+  }
+  function selectTarget(value: string) {
+    setTarget(value); setFeedback(null);
+    const selected = day?.sessions[Number(value)];
+    if (kind === 'mission' && selected) {
+      setValue(clock(selected.start, 'en-GB')); setEndValue(clock(selected.end ?? now, 'en-GB'));
+      const startDate = new Date(selected.start).toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
+      const finishDate = new Date(selected.end ?? now).toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
+      setNextDay(startDate !== date); setEndNextDay(finishDate !== startDate);
+    }
+  }
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setFeedback(null);
+    const fail = (message: string) => setFeedback({ ok: false, message });
+    if (reason.trim().length < 5 || reason.trim().length > 2000) { fail('دلیل درخواست را در ۵ تا ۲۰۰۰ نویسه بنویسید.'); return; }
+    if ((kind === 'correct' || kind === 'mission') && !session) { fail('بازهٔ ثبت‌شدهٔ موردنظر را انتخاب کنید.'); return; }
+    if (kind === 'mission' && session?.mode === 'mission') { fail('مأموریت باید داخل بازهٔ کاری عادی یا دورکاری باشد.'); return; }
+    if (kind !== 'late' && (!allowed.includes(value) || pair && !endAllowed.includes(endValue))) { fail('ساعت معتبر انتخاب کنید؛ ساعت آینده یا مأموریت خارج از بازهٔ کار مجاز نیست.'); return; }
+    const at = stamp(timeDate, value), until = stamp(endDate, endValue);
+    if (pair && until <= at) { fail('ساعت پایان باید بعد از ساعت شروع باشد.'); return; }
+    startTransition(async () => {
+      try {
+        const result = pair ? await requestWorkInterval({ date, mode: kind === 'mission' ? 'mission' : mode, at: at.toISOString(), until: until.toISOString(), reason })
+          : await requestWork({ date, kind: kind === 'late' ? 'late' : 'time', action: action === 'end' ? 'end' : 'start', mode: kind === 'correct' ? session!.mode : mode,
+            at: kind === 'late' ? null : at.toISOString(), index: kind === 'correct' ? Number(target) : null, reason });
+        setFeedback(result);
+        if (result.ok) setReason('');
+      } catch { fail('ارسال درخواست انجام نشد؛ دوباره تلاش کنید.'); }
+    });
+  }
+  const missingWork = kind === 'mission' && !workSessions.length;
+  return <section className={`${s.card} ${s.correctionCard}`} aria-label="درخواست ثبت یا اصلاح تردد">
+    <details className={s.correctionDisclosure}>
+      <summary><FilePlus2 size={20} aria-hidden="true" /><span><strong>درخواست ثبت یا اصلاح تردد</strong><small>ثبت ورود و خروج، اصلاح ساعت یا ثبت مأموریت</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
+      <form className={s.correctionForm} onSubmit={submit}>
+        <p className={s.registrationHint}>ساعت‌های این بخش فقط پس از تأیید مدیریت اعمال می‌شوند.</p>
+        <JalaliDatePicker value={date} max={today} disabled={busy} onChange={date => { setDate(date); setTarget(''); setNextDay(false); setEndNextDay(false); setFeedback(null); }} />
+        <label>درخواست موردنظر<Select aria-label="درخواست موردنظر" value={kind} disabled={busy} onChange={event => selectKind(event.target.value as typeof kind)}><option value="register">ثبت ورود و خروج جاافتاده</option><option value="correct">اصلاح ساعت ورود یا خروج</option><option value="mission" disabled={!workSessions.length}>ثبت مأموریت</option><option value="late">فقط توضیح تأخیر</option></Select></label>
+        {!workSessions.length && <p className={s.registrationHint}>ثبت مأموریت پس از ثبت ساعت کاری این روز فعال می‌شود.</p>}
+        {(kind === 'correct' || kind === 'mission') && <label>{kind === 'mission' ? 'بازهٔ کاری مأموریت' : 'بازهٔ موردنظر'}<Select aria-label="بازهٔ ثبت‌شده" value={target} disabled={busy} required onChange={event => selectTarget(event.target.value)}><option value="">انتخاب بازهٔ ثبت‌شده</option>{(kind === 'mission' ? workSessions : day?.sessions.map((session, index) => ({ session, index })) ?? []).map(({ session, index }) => <option key={index} value={index}>{modeLabel(session.mode)} · {clock(session.start)} تا {session.end ? clock(session.end) : 'خروج ثبت‌نشده'}</option>)}</Select></label>}
+        {kind === 'register' && <label>نوع کارکرد<Select aria-label="نوع کارکرد" value={mode} disabled={busy} onChange={event => setMode(event.target.value as WorkMode)}><option value="office">عادی</option><option value="remote">دورکاری</option></Select></label>}
+        {(kind === 'register' || kind === 'correct') && <label>ساعت موردنظر<Select aria-label="ورود یا خروج" value={action} disabled={busy} onChange={event => setAction(event.target.value as typeof action)}>{kind === 'register' && <option value="both">ورود و خروج با هم</option>}<option value="start">{kind === 'correct' ? 'اصلاح ورود' : 'فقط ورود'}</option><option value="end">{kind === 'correct' ? 'اصلاح خروج' : 'فقط خروج'}</option></Select></label>}
+        {kind !== 'late' && <>
+          <label className={s.correctionCheck}><input type="checkbox" checked={nextDay} disabled={busy} onChange={event => setNextDay(event.target.checked)} />{pair ? 'شروع بازه در روز بعد (شیفت شب)' : 'ساعت روز بعد برای شیفت شب'}</label>
+          <TimePicker label={pair ? kind === 'mission' ? 'شروع مأموریت' : 'ساعت ورود' : 'ساعت موردنظر'} value={value} allowedTimes={allowed.length ? allowed : [value]} disabled={busy || !allowed.length} requestMode onChange={setValue} />
+          {pair && <><label className={s.correctionCheck}><input type="checkbox" checked={endNextDay} disabled={busy} onChange={event => setEndNextDay(event.target.checked)} />پایان بازه در روز بعد از شروع</label><TimePicker label={kind === 'mission' ? 'پایان مأموریت' : 'ساعت خروج'} value={endValue} allowedTimes={endAllowed.length ? endAllowed : [endValue]} disabled={busy || !endAllowed.length} requestMode onChange={setEndValue} /></>}
+          {kind === 'mission' && <p className={s.registrationHint}>شروع و پایان مأموریت باید داخل بازهٔ کاری انتخاب‌شده باشند؛ مدت کار اصلی دوباره محاسبه نمی‌شود.</p>}
+        </>}
+        <label>دلیل درخواست<textarea value={reason} disabled={busy} onChange={event => setReason(event.target.value)} minLength={5} maxLength={2000} rows={3} required placeholder="دلیل ثبت یا اصلاح ساعت را بنویسید." /></label>
+        <button type="submit" className={s.entryAction} disabled={busy || missingWork}>ارسال درخواست ثبت</button>
+        {feedback && <p role={feedback.ok ? 'status' : 'alert'} className={feedback.ok ? s.registrationFeedback : s.entryError}>{feedback.message}</p>}
+      </form>
+    </details>
+  </section>;
+}

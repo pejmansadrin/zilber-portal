@@ -1,0 +1,20 @@
+.root{position:relative;min-width:0;max-width:100%;flex:1}
+.trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--line,var(--surface-border));border-radius:11px;background:var(--input,var(--surface));color:var(--ink,var(--foreground));font:inherit;font-size:13px;text-align:start;cursor:pointer}
+.value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trigger>svg{flex-shrink:0;color:var(--muted,var(--foreground));transition:transform .18s ease}
+.trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.trigger[aria-expanded="true"],.trigger:focus-visible{outline:2px solid var(--accent,var(--brand-accent));outline-offset:2px}
+.trigger[aria-invalid="true"]{border-color:var(--error,var(--danger))}
+.trigger:disabled{opacity:.45;cursor:default}
+.root>.native{position:absolute!important;inset:0 auto auto 0!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.menu{position:fixed;inset:auto;margin:0;box-sizing:border-box;padding:6px;border:1px solid var(--line,var(--surface-border));border-radius:13px;background:var(--surface);color:var(--ink,var(--foreground));box-shadow:0 12px 36px rgb(8 20 45 / 20%);font:inherit;font-size:13px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;outline:none}
+.menu:popover-open{animation:enter .15s ease-out}
+.option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;padding:9px 10px;border-radius:8px;cursor:pointer;overflow-wrap:anywhere}
+.option>svg{flex-shrink:0;color:var(--accent,var(--brand-accent))}
+.option[data-active="true"]{background:var(--subtle,var(--surface-muted))}
+.option[aria-selected="true"]{color:var(--accent,var(--brand-accent));font-weight:650}
+.option[aria-disabled="true"]{opacity:.35;cursor:default}
+@keyframes enter{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.menu:popover-open{animation:none}.trigger>svg{transition:none}}
+
+.error{display:block;margin-top:6px;color:var(--error,var(--danger));font-size:11px}

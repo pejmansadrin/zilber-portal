@@ -41,6 +41,7 @@ export function PageLoadingProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const target = (e.target as HTMLElement).closest('a');
       if (!target) return;
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { Select } from "@/components/ui/Select";
+
 import React, { useState } from 'react';
 import { submitMissionRequest } from '@/actions/attendance';
 import { Briefcase, MapPin, X, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
@@ -129,7 +131,8 @@ export function MissionRequestModal({ isOpen, onClose, onSuccess }: MissionReque
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
               نحوه ایاب و ذهاب
             </label>
-            <select
+            <Select
+              aria-label="نحوه ایاب و ذهاب"
               value={transportType}
               onChange={(e) => setTransportType(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#16214f]"
@@ -138,7 +141,7 @@ export function MissionRequestModal({ isOpen, onClose, onSuccess }: MissionReque
               <option value="شخصی">وسیله نقلیه شخصی</option>
               <option value="هوایی">هوایی (پرواز)</option>
               <option value="عمومی">تاکسی اینترنتی / عمومی</option>
-            </select>
+            </Select>
           </div>
 
           <div>

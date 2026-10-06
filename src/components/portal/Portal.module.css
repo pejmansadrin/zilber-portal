@@ -1196,11 +1196,11 @@
     justify-content: center;
   }
   .main {
-    margin-top: 26px;
+    margin-top: 8px;
   }
   .pageTitle {
     align-items: start;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   .date {
     font-size: 10px;
@@ -1532,7 +1532,7 @@
 
 @media (max-width: 440px) {
   .dashboardPage .main {
-    margin-top: 23px;
+    margin-top: 8px;
   }
 }
 

@@ -25,15 +25,24 @@ function describe(day: typeof days[number]) {
   return `${digits(day.date)}، ${day.weekday}؛ ${row?.start ? row.end ? `ورود ${displayTime(row.start)}، خروج ${displayTime(row.end)}، مدت حضور ${format(work(row)!)}.` : `ورود ${displayTime(row.start)}، خروج ثبت‌نشده.` : row ? "بدون تردد در تصویر." : "داده‌ای ثبت نشده."}`;
 }
 
-export function AttendanceGantt({ person, currentTime, todayEntry }: { person: string; currentTime: string; todayEntry: WorkDay | null }) {
+export function AttendanceGantt({ person, currentTime, todayEntry, workDays }: { person: string; currentTime: string; todayEntry: WorkDay | null; workDays?: WorkDay[] }) {
   const date = new Date(currentTime);
   const currentDay = toPersianDate(date.toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" }));
   const localTime = (stamp: string) => new Date(stamp).toLocaleTimeString("en-GB", { timeZone: "Asia/Tehran", hour12: false });
   const nowPosition = position(localTime(currentTime));
-  const displayDays = days.map(day => todayEntry && toPersianDate(todayEntry.date) === day.date ? { ...day, row: { date: day.date, day: day.weekday, start: localTime(todayEntry.start), end: todayEntry.end ? localTime(todayEntry.end) : null } } : day);
+  const month = currentDay.slice(0, 7);
+  const calendar = workDays ? Array.from({ length: 31 }, (_, index) => {
+    const jalali = `${month}/${String(index + 1).padStart(2, "0")}`;
+    const iso = fromPersianDate(jalali);
+    const entry = workDays.find(day => day.date === iso);
+    return { date: jalali, day: index + 1, weekday: iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("fa-IR", { weekday: "long", timeZone: "UTC" }) : "", valid: !!iso,
+      row: entry ? { date: jalali, day: "", start: localTime(entry.start), end: entry.end ? localTime(entry.end) : null } : undefined };
+  }).filter(day => day.valid) : days;
+  const displayDays = calendar.map(day => todayEntry && toPersianDate(todayEntry.date) === day.date ? { ...day, row: { date: day.date, day: day.weekday, start: localTime(todayEntry.start), end: todayEntry.end ? localTime(todayEntry.end) : null } } : day);
   const [selected, setSelected] = useState(1);
+  const selectedDay = displayDays[Math.min(selected - 1, displayDays.length - 1)];
   return <div className={s.gantt}>
-    <div className={s.heatHeading}><div><h3>نمودار ساعات حضور ماهانه</h3><p>مهر ۱۴۰۵ · {person}</p></div><span className={s.badge}>هر ردیف، یک روز</span></div>
+    <div className={s.heatHeading}><div><h3>نمودار ساعات حضور ماهانه</h3><p>{workDays ? digits(month) : "مهر ۱۴۰۵"} · {person}</p></div><span className={s.badge}>هر ردیف، یک روز</span></div>
     <div className={s.ganttScroll}><div className={s.ganttCanvas}>
       <div className={s.ganttHeader}><span className={s.ganttDayHeading}>روز</span><span className={s.ganttWeekHeading} title="روز هفته">هفته</span><span className={s.ganttColumnHeading}>ورود</span><span className={s.ganttColumnHeading}>خروج</span><span className={s.ganttColumnHeading}>اضافه‌کار</span><span className={s.ganttColumnHeading}>مدت حضور</span><div className={s.ganttAxis} dir="ltr">{hours.map(hour => <span key={hour} style={{ left: `${hour / 24 * 100}%` }}>{digits(String(hour))}</span>)}</div></div>
       {displayDays.map(day => {
@@ -43,7 +52,8 @@ export function AttendanceGantt({ person, currentTime, todayEntry }: { person: s
         const shiftStart = position(officialStart);
         const shiftEnd = position(officialEnd);
         const workingDay = day.valid && day.weekday !== "جمعه";
-        const daySessions = todayEntry && toPersianDate(todayEntry.date) === day.date ? todayEntry.sessions.map(session => ({ start: localTime(session.start), end: session.end ? localTime(session.end) : null, mode: session.mode })) : row?.start ? [{ start: row.start, end: row.end, mode: "office" as WorkMode }] : [];
+        const storedDay = workDays?.find(entry => toPersianDate(entry.date) === day.date) || (todayEntry && toPersianDate(todayEntry.date) === day.date ? todayEntry : null);
+        const daySessions = storedDay ? storedDay.sessions.map(session => ({ start: localTime(session.start), end: session.end ? localTime(session.end) : null, mode: session.mode })) : row?.start ? [{ start: row.start, end: row.end, mode: "office" as WorkMode }] : [];
         const spans = daySessions.map(session => {
           const start = position(session.start);
           const live = !session.end && day.date === currentDay && nowPosition >= start;
@@ -56,7 +66,7 @@ export function AttendanceGantt({ person, currentTime, todayEntry }: { person: s
         const balance = workBalance(spans.filter(span => span.mode !== "mission").map(span => ({ start: span.startPosition * 14.4, end: span.endPosition * 14.4 })), workingDay ? (day.weekday === "پنجشنبه" ? 720 : 900) : null);
         const extraMinutes = Math.floor(balance.overtime + .000001);
         const totalMinutes = Math.floor(balance.worked + .000001);
-        const label = `${describe(day)} ${workingDay ? `ساعت رسمی ${digits(officialStart)} تا ${digits(officialEnd)}.` : "روز تعطیل."}${extraMinutes ? ` حضور بعد از ساعت رسمی ${format(extraMinutes)}${live ? "، موقت" : ""}.` : ""}`;
+        const label = `${workDays ? `${digits(day.date)}، ${day.weekday}.` : describe(day)} ${workingDay ? `ساعت رسمی ${digits(officialStart)} تا ${digits(officialEnd)}.` : "روز تعطیل."}${extraMinutes ? ` حضور بعد از ساعت رسمی ${format(extraMinutes)}${live ? "، موقت" : ""}.` : ""}`;
         return <button type="button" key={day.date} className={`${s.ganttRow} ${day.weekday === "جمعه" ? s.ganttFriday : ""} ${!day.valid ? s.ganttInvalid : ""}`} aria-label={label} aria-pressed={selected === day.day} onClick={() => setSelected(day.day)}>
           <span className={s.ganttDay}><strong>{digits(String(day.day).padStart(2, "0"))}</strong></span><span className={s.ganttWeekday} title={day.valid ? day.weekday : "روز نامعتبر"}>{day.valid ? weekdayLetters[day.weekday] : "—"}</span>
           <span className={s.ganttDuration}><span dir="ltr">{row?.start ? displayTime(row.start) : "—"}</span></span>
@@ -84,7 +94,7 @@ export function AttendanceGantt({ person, currentTime, todayEntry }: { person: s
       })}
     </div></div>
     <div className={s.ganttLegend}><span><i className={s.ganttLegendOfficial} />ساعت کاری رسمی</span><span><i className={s.ganttLegendLive} />حضور نهایی‌نشده</span><span><i className={s.ganttLegendBar} />عادی</span><span><i className={s.ganttLegendRemote} />دورکاری</span><span><i className={s.ganttLegendMission} />مأموریت</span><span><i className={s.ganttLegendExtra} />اضافه‌کار خالص</span><span><i className={s.ganttLegendMarker} />ورود بدون خروج</span><span>جمعه‌ها با زمینهٔ متفاوت</span></div>
-    <p className={s.heatDetails} aria-live="polite">{todayEntry && toPersianDate(todayEntry.date) === displayDays[selected - 1].date ? todayEntry.sessions.map(session => `${modeLabel(session.mode)}: ${displayTime(localTime(session.start))} تا ${session.end ? displayTime(localTime(session.end)) : "اکنون"}`).join(" · ") : describe(displayDays[selected - 1])}</p>
-    <p className={s.sheetDisclaimer}>محور ساعت به وقت تهران است. نوار کم‌اشباع با حرکت نرمِ پرشدن، حضور احتمالی امروز تا ساعت فعلی است و خروج قطعی محسوب نمی‌شود؛ با ثبت خروج به نوار سرمه‌ای تبدیل می‌شود. بازهٔ زمینه، ساعت رسمی همان روز است؛ حضور قبل از ۸ و پس از پایان ساعت رسمی، بعد از کسر جبران کسری موظفی، به‌عنوان اضافه‌کار خالص نمایش داده می‌شود. مأموریت داخل کار اصلی است و دوباره شمرده نمی‌شود. فقط داده‌های ۱ تا ۱۱ مهر از تصویر موجودند؛ ردیف‌های بدون داده به معنی غیبت نیستند. ردیف ۳۱ برای حفظ قالب جدول نمایش داده شده و در مهر فعال نیست.</p>
+    <p className={s.heatDetails} aria-live="polite">{todayEntry && toPersianDate(todayEntry.date) === selectedDay.date ? todayEntry.sessions.map(session => `${modeLabel(session.mode)}: ${displayTime(localTime(session.start))} تا ${session.end ? displayTime(localTime(session.end)) : "اکنون"}`).join(" · ") : workDays ? `${digits(selectedDay.date)}؛ ${selectedDay.row ? "تردد ثبت‌شده" : "بدون دادهٔ ثبت‌شده"}` : describe(selectedDay)}</p>
+    <p className={s.sheetDisclaimer}>محور ساعت به وقت تهران است. نوار کم‌اشباع با حرکت نرمِ پرشدن، حضور احتمالی امروز تا ساعت فعلی است و خروج قطعی محسوب نمی‌شود؛ با ثبت خروج به نوار سرمه‌ای تبدیل می‌شود. بازهٔ زمینه، ساعت رسمی همان روز است؛ حضور قبل از ۸ و پس از پایان ساعت رسمی، بعد از کسر جبران کسری موظفی، به‌عنوان اضافه‌کار خالص نمایش داده می‌شود. مأموریت داخل کار اصلی است و دوباره شمرده نمی‌شود. ردیف‌های بدون داده به معنی غیبت نیستند.</p>
   </div>;
 }

@@ -1,4 +1,6 @@
 "use client";
+
+import { Select } from "@/components/ui/Select";
 import {
   startTransition,
   useActionState,
@@ -130,7 +132,7 @@ function FieldInput({
       {field.type === "textarea" ? (
         <textarea {...props} defaultValue={text} maxLength={3000} />
       ) : field.type === "select" ? (
-        <select {...props} defaultValue={text}>
+        <Select {...props} aria-label={field.label} defaultValue={text}>
           <option value="">انتخاب کنید</option>
           {text && !options.includes(text) && !field.choices?.some(choice => choice.value === text) && (
             <option value={text}>{text}</option>
@@ -141,7 +143,7 @@ function FieldInput({
               {option}
             </option>
           ))}
-        </select>
+        </Select>
       ) : field.type === "file" ? (
         <>
           <input {...props} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" />

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { MobileBack } from "@/components/navigation/MobileBack";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -206,7 +207,7 @@ export function PortalShell({
                             <ShieldCheck size={15} aria-hidden="true" />
                           </span>
                           <div className={s.cornerNavMeta}>
-                            <span className={s.cornerNavTitle}>{accessRole === "super_admin" ? "پنل سوپرادمین" : "مدیریت پرونده‌ها"}</span>
+                            <span className={s.cornerNavTitle}>{accessRole === "super_admin" ? "پنل مدیریت" : "مدیریت پرونده‌ها"}</span>
                             <span className={s.cornerNavSub}>{accessRole === "super_admin" ? "مدیریت کاربران و همهٔ پرونده‌ها" : "اطلاعات همکاری و پرونده‌های پرسنلی"}</span>
                           </div>
                           {path.startsWith("/people") && <span className={s.cornerActiveIndicator} />}
@@ -290,6 +291,7 @@ export function PortalShell({
       )}
 
       <main id="main-content" className={s.main}>
+        <MobileBack />
         {children}
       </main>
 

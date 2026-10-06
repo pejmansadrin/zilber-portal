@@ -1,20 +1,106 @@
-.picker{position:relative;min-width:156px;color:var(--ink)}.label{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}.trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:156px;background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}.trigger strong{font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:24px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}.trigger>svg{color:var(--muted);flex-shrink:0;transition:transform .2s}.trigger .rotated{transform:rotate(180deg)}.trigger:disabled{opacity:.5;cursor:default}.trigger[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--subtle)}.trigger:focus-visible,.done:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.panel{position:absolute;top:calc(100% + 8px);right:0;width:244px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgb(10 25 50 / 18%);padding:14px;z-index:30;animation:reveal .16s ease-out}.panelHeading{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:12px}.panelHeading strong{font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:18px;font-weight:600}.columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.column{margin:0;padding:0;min-width:0;border:0}.column legend{width:100%;text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px}.options{height:174px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;border-radius:10px;background:var(--subtle);padding:5px}.option{display:block;position:relative;margin:2px 0;cursor:pointer}.option input{position:absolute;opacity:0;width:1px;height:1px}.option span{display:flex;align-items:center;justify-content:center;min-height:32px;border-radius:7px;color:var(--muted);font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:18px;transition:background .12s,color .12s}.option:hover span{background:var(--input);color:var(--ink)}.option input:checked+span{background:var(--ink);color:var(--surface);font-weight:650}.option input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-2px}.done{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:1px solid var(--line);border-radius:9px;background:var(--subtle);color:var(--accent);font-size:12px;font-weight:650;padding:9px;cursor:pointer}.mobileInput{display:none}.picker:has(.trigger:disabled) .label{opacity:.6}@keyframes reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-@media(pointer:coarse){.trigger,.panel{display:none}.mobileInput{display:block;width:156px;border:1px solid var(--line);border-radius:11px;background:var(--input);color:var(--ink);padding:10px 12px;font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:22px;direction:ltr}.mobileInput:focus-visible{outline:2px solid var(--accent);outline-offset:3px}}
-@media(prefers-reduced-motion:reduce){.panel{animation:none}.trigger>svg,.option span{transition:none}}
+.picker{position:relative;min-width:156px;color:var(--ink)}
+.label{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}
+.trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:156px;height:46px;box-sizing:border-box;background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer}
+.trigger strong{font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:24px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}
+.trigger>svg{color:var(--muted);flex-shrink:0;transition:transform .2s}
+.trigger .rotated{transform:rotate(180deg)}
+.trigger:disabled{opacity:.5;cursor:default}
+.trigger[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--subtle)}
+.picker:has(.trigger:disabled) .label{opacity:.6}
+.trigger:focus-visible,.done:focus-visible,.close:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
-.magneticColumns{display:grid;grid-template-columns:1fr 14px 1fr;gap:6px;margin:12px 0 8px;align-items:center}.wheelColumn{min-width:0}.wheelTitle{display:block;text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px}.wheel{position:relative;height:170px;overflow:hidden;border-radius:12px;background:var(--subtle);cursor:ns-resize;outline:none;overscroll-behavior:contain;isolation:isolate;mask-image:linear-gradient(transparent,black 25%,black 75%,transparent)}.wheel:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}.magnetBand{position:absolute;left:5px;right:5px;top:68px;height:34px;border-radius:8px;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgb(15 30 60 / 6%)}.wheelTrack{position:absolute;inset:0 5px auto;transition:transform .22s cubic-bezier(.16,1,.3,1);will-change:transform}.wheelNumber{height:34px;display:flex;align-items:center;justify-content:center;font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:19px;color:var(--muted);user-select:none;transition:color .18s,scale .18s,opacity .18s;opacity:.65}.wheelSelected{font-size:24px;font-weight:650;color:var(--accent);opacity:1}.wheelSeparator{padding-top:20px;font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:24px;color:var(--muted);text-align:center}.wheelHint{font-size:9px;color:var(--muted);text-align:center;line-height:1.8;margin:0 0 10px}@media(prefers-reduced-motion:reduce){.wheelTrack,.wheelNumber{transition:none}}
+/* showModal places the panel in the browser top layer; its DOM location keeps theme tokens. */
+.panel{
+  --picker-vh:100dvh;
+  --picker-vw:100vw;
+  --picker-top:0px;
+  --picker-left:0px;
+  position:fixed;
+  inset:auto;
+  top:calc(var(--picker-top) + (var(--picker-vh) + env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2);
+  left:calc(var(--picker-left) + (var(--picker-vw) + env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))/2);
+  transform:translate(-50%,-50%);
+  width:min(380px,calc(var(--picker-vw) - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));
+  max-width:none;
+  max-height:calc(var(--picker-vh) - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:0 28px 90px rgb(8 20 40 / 26%);
+  font:inherit;
+}
+.panel[open]{display:flex;flex-direction:column}
+.panel::backdrop{background:rgb(6 14 30 / 42%);backdrop-filter:blur(4px)}
+.dialogHeader{display:flex;align-items:center;gap:12px;flex:0 0 auto;padding:18px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
+.dialogHeader h2{font-size:16px;font-weight:750;margin:0;line-height:1.5}
+.dialogHeader p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.dialogIcon{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;border-radius:13px;background:var(--subtle);color:var(--accent)}
+.close{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;margin-inline-start:auto;padding:0;background:var(--subtle);color:var(--muted);border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.dialogBody{min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:16px 20px;scroll-padding-block:16px;-webkit-overflow-scrolling:touch}
+.dialogFooter{flex:0 0 auto;padding:14px 20px;border-top:1px solid var(--line);background:var(--surface)}
+.done{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;background:var(--subtle);color:var(--accent);font:inherit;font-size:13px;font-weight:650;padding:10px 12px;cursor:pointer}
+.limitHint{font-size:11px;color:var(--muted);text-align:center;margin:12px 0 16px;line-height:1.9}
 
-/* Emphasize the chosen wheel values instead of repeating the time above. */
-.magneticColumns{margin-top:3px}
+.magneticColumns{display:grid;grid-template-columns:1fr 14px 1fr;gap:8px;margin:3px 0 12px;align-items:center}
+.wheelColumn{min-width:0}
+.wheelTitle{display:block;text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px}
+.wheel{position:relative;height:170px;overflow:hidden;border-radius:12px;background:var(--subtle);cursor:ns-resize;touch-action:pan-x pinch-zoom;outline:none;overscroll-behavior:contain;isolation:isolate;perspective:180px;perspective-origin:50% 50%;mask-image:linear-gradient(transparent,black 18%,black 82%,transparent)}
+.wheel:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+.magnetBand{position:absolute;left:5px;right:5px;top:68px;height:34px;border-radius:8px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));box-shadow:0 2px 8px rgb(15 30 60 / 6%)}
+.wheelTrack{position:absolute;left:5px;right:5px;top:68px;bottom:auto;height:34px;transform-style:preserve-3d}
+.wheelNumber{position:absolute;inset:0;height:34px;display:flex;align-items:center;justify-content:center;font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:30px;font-weight:600;color:var(--muted);user-select:none;transform-origin:center center;backface-visibility:hidden;transition:transform .24s cubic-bezier(.16,1,.3,1),opacity .2s,color .2s;will-change:transform}
 .wheelSelected{font-size:30px;font-weight:800;color:var(--ink);line-height:1;letter-spacing:-.025em}
-.magnetBand{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:color-mix(in srgb,var(--accent) 10%,var(--surface));box-shadow:0 2px 8px rgb(15 30 60 / 6%)}
+.wheelSeparator{padding-top:20px;font-family:"Attendance Numbers",Tahoma,sans-serif;font-size:24px;color:var(--muted);text-align:center}
 
-/* Cylindrical wheel viewed straight on with a pronounced depth perspective. */
-.wheel{perspective:180px;perspective-origin:50% 50%;mask-image:linear-gradient(transparent,black 18%,black 82%,transparent)}
-.wheelTrack{position:absolute;left:5px;right:5px;top:68px;bottom:auto;height:34px;transform-style:preserve-3d;transition:none;will-change:auto}
-.wheelNumber{position:absolute;inset:0;height:34px;font-size:30px;font-weight:600;transform-origin:center center;backface-visibility:hidden;transition:transform .24s cubic-bezier(.16,1,.3,1),opacity .2s,color .2s;will-change:transform}
-.wheelSelected{font-size:30px;font-weight:800;color:var(--ink)}
-.magneticColumns{margin-bottom:12px}
-@media(prefers-reduced-motion:reduce){.wheelNumber{transition:none}}
+.requestToggle{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:14px;background:var(--subtle);padding:13px;margin:0;cursor:pointer;line-height:1.8}
+.requestToggle input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--accent);flex-shrink:0}
+.requestToggle strong{display:block;font-size:12px;font-weight:600;color:var(--ink)}
+.requestToggle small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.requestToggle{transition:background-color .2s,border-color .2s}
+.requestReveal{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s cubic-bezier(.22,1,.36,1),opacity .24s ease}
+.requestReveal[data-open="true"]{grid-template-rows:1fr;opacity:1}
+.requestRevealInner{min-height:0;overflow:hidden}
+.requestEnabled{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+/* Reserve space inside the animated clipping boundary for focus outlines. */
+.requestFields{font-size:12px;line-height:1.9;margin:18px 0 0;padding:6px;box-sizing:border-box;overflow-wrap:anywhere}
+.requestFields label{display:grid;gap:7px;margin:12px 0;color:var(--muted)}
+.requestFields textarea,.requestFields input:not([type="checkbox"]),.requestFields label>select{display:block;width:100%;min-width:0;box-sizing:border-box;background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit;font-size:16px}
+.requestFields textarea{resize:vertical;min-height:100px;max-height:240px;scroll-margin-block:16px}
+.requestFields input:not([type="checkbox"]){direction:ltr}
+.requestFields label:has(input[type="checkbox"]){display:flex;align-items:center;gap:8px;min-height:44px}
+.requestFields input[type="checkbox"]{accent-color:var(--accent);width:18px;height:18px;flex-shrink:0}
+.requestFields p{color:var(--muted);font-size:11px;margin:10px 0}
+.requestFields details{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+.requestFields summary{display:flex;align-items:center;gap:10px;min-height:62px;padding:12px;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;background:var(--subtle);color:var(--accent);cursor:pointer;line-height:1.8;list-style:none}
+.requestFields summary::-webkit-details-marker{display:none}
+.requestFields summary::marker{content:""}
+.requestFields summary>svg{flex-shrink:0}
+.requestFields summary>span{flex:1;min-width:0}
+.requestFields summary strong{display:block;font-size:12px;font-weight:650;color:var(--ink)}
+.requestFields summary small{display:block;margin-top:3px;font-size:10px;color:var(--muted)}
+.requestFields summary>svg:last-child{transition:transform .2s ease}
+.requestFields details[open]>summary{border-color:var(--accent)}
+.requestFields details[open]>summary>svg:last-child{transform:rotate(180deg)}
+.requestToggle input:focus-visible,.requestFields input:focus-visible,.requestFields textarea:focus-visible,.requestFields label>select:focus-visible,.requestFields summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.trigger,.mobileInput{height:46px;box-sizing:border-box}
+@media(max-width:600px){
+  .panel{top:calc(var(--picker-top) + var(--picker-vh) - 12px - env(safe-area-inset-bottom,0px));transform:translate(-50%,-100%);border-radius:22px}
+  .dialogHeader{padding:14px 16px}
+  .dialogBody{padding:14px 16px}
+  .dialogFooter{padding:12px 16px}
+}
+@media(max-height:360px){.dialogHeader{padding-block:8px}.dialogIcon{display:none}.dialogFooter{padding-block:8px}}
+@media(prefers-reduced-motion:reduce){.trigger>svg,.wheelNumber,.requestToggle,.requestReveal,.requestFields summary>svg:last-child{transition:none}}
+
+@media(max-width:750px){
+  .picker{width:100%;min-width:0}
+  .trigger{width:100%;height:48px}
+}
+
+.requestForm{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.done:disabled,.close:disabled{opacity:.5;cursor:default}
