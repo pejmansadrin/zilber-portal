@@ -14,6 +14,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public image files (svg, png, avif, etc.)
      */
-    '/((?!api/health$|manifest.webmanifest$|sw.js$|offline.html$|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif)$).*)',
+    '/((?!api/health$|app-assets.json$|manifest.webmanifest$|sw.js$|offline.html$|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|woff|woff2)$).*)',
   ],
 };

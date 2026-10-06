@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
+import Link from "@/components/navigation/AppLink";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import s from "./MobileBack.module.css";
@@ -25,7 +25,7 @@ function BackLink() {
   if (pathname === "/dashboard") {
     return null;
   }
-  return <Link href={href} replace prefetch={false} className={s.mobileBack} aria-label={label} title={label}>
+  return <Link href={href} replace className={s.mobileBack} aria-label={label} title={label}>
     <ArrowRight size={19} aria-hidden="true" /><span>برگشت</span>
   </Link>;
 }

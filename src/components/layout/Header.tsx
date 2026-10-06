@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import { AppPrefetch } from '@/components/navigation/AppPrefetch';
+import Link from '@/components/navigation/AppLink';
 import { UserProfile } from '@/types/attendance';
 import { LogOut, Clock, Calendar, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ProfileImage } from '@/components/portal/ProfileImage';
 
@@ -18,13 +18,11 @@ interface HeaderProps {
 }
 
 export function Header({ profile, authenticated = false, isSuperAdmin = false, avatar, gender }: HeaderProps) {
-  const router = useRouter();
   const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    window.location.replace('/login');
   };
 
   const getRoleLabel = (role?: string) => {
@@ -40,6 +38,7 @@ export function Header({ profile, authenticated = false, isSuperAdmin = false, a
 
   return (
     <header className="sticky top-0 z-50 bg-[#16214f] text-white shadow-md border-b border-white/10">
+      {(profile || authenticated) && <AppPrefetch superAdmin={isSuperAdmin} legacyTools={!!profile} />}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand & Logo */}

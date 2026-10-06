@@ -1,22 +1,4 @@
-.loadingOverlay { composes: glass-scrim from global; }
-
-.loadingOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  pointer-events: all;
-  animation: fadeIn 0.15s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+.progress { position: fixed; inset: 0 0 auto; height: 3px; z-index: 99999; pointer-events: none; overflow: hidden; direction: ltr; background: rgb(98 136 207 / 16%); }
+.progress span { display: block; height: 100%; width: 35%; background: #597fca; animation: travel 1s ease-in-out infinite; }
+@keyframes travel { from { transform: translateX(-110%); } to { transform: translateX(390%); } }
+@media (prefers-reduced-motion: reduce) { .progress span { width: 100%; animation: none; } }

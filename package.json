@@ -1,6 +1,6 @@
 {
   "name": "zilber-portal",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,7 +11,8 @@
     "db:stop": "node ops/supabase/local.mjs stop",
     "db:status": "node ops/supabase/local.mjs status",
     "db:sync": "node ops/supabase/local.mjs sync",
-    "db:reset": "npx supabase db reset"
+    "db:reset": "npx supabase db reset",
+    "postbuild": "node ops/pwa/build-assets.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

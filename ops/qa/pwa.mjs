@@ -90,3 +90,4 @@ for (const icon of [...manifest.icons, { src: "/pwa/apple-touch-icon.png", sizes
   assert.equal(meta.format, "png");
 }
 console.log("PWA checks passed: mobile/standalone gate, installation capture, public-only offline caching, network auth/mutations, manifest and icons.");
+await import("./app-preload.mjs");

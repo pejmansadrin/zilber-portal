@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { AppPrefetch } from "@/components/navigation/AppPrefetch";
 import { MobileBack } from "@/components/navigation/MobileBack";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "@/components/navigation/AppLink";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LayoutGrid, UserRound, ShieldCheck, LogOut, X, Clock3 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -43,7 +44,6 @@ export function PortalShell({
   gender?: string | null;
 }) {
   const path = usePathname();
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -91,8 +91,8 @@ export function PortalShell({
     try {
       const { error } = await createClient().auth.signOut({ scope: "local" });
       if (error) throw error;
-      router.replace("/login");
-      router.refresh();
+      // A new document also drops all prefetched personal page payloads.
+      window.location.replace("/login");
     } catch {
       setError("خروج انجام نشد؛ دوباره تلاش کنید.");
       setBusy(false);
@@ -101,6 +101,7 @@ export function PortalShell({
 
   return (
     <div className={`${s.page} ${s.dashboardPage}`}>
+      <AppPrefetch superAdmin={accessRole === "super_admin"} />
       <div className={s.dashboardBackdrop} aria-hidden="true" />
       <a className={s.skip} href="#main-content">
         رفتن به محتوای اصلی
