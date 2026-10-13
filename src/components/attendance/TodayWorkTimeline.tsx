@@ -1,6 +1,6 @@
 "use client";
 
-import { modeLabel, estimatedWorkEnd, workBalance, type WorkDay } from "./work-sessions";
+import { modeLabel, estimatedWorkEnd, workBalance, type WorkDay } from "@/domain/attendance/work-sessions";
 import s from "./TodayWorkTimeline.module.css";
 import { capsuleRadius } from "./capsule-radius";
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient as createAuthClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { getSession, getAccessRole } from "@/lib/auth/session";
 import { normalizeProfilePhoto } from "@/lib/account/profile-photo";
 import { getCloudConfig } from "@/lib/supabase/config";
 import {
@@ -23,11 +24,9 @@ const failure = (
   errors?: Record<string, string>,
 ): FormResult => ({ ok: false, message, errors });
 async function context() {
-  const client = await createClient();
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-  if (!user) return null;
+  const session = await getSession();
+  if (!session) return null;
+  const { client, user } = session;
   const { data: employee } = await client
     .from("employees")
     .select("id,auth_user_id,first_name,last_name,photo_storage_path")
@@ -142,6 +141,7 @@ async function upload(
   return { path, mime };
 }
 function refreshed() {
+  revalidatePath("/(portal)", "layout");
   revalidatePath("/account");
   revalidatePath("/dashboard");
 }
@@ -378,11 +378,11 @@ export async function changePassword(
 }
 
 export async function saveOrganization(target: number, area: string, _previous: FormResult, form: FormData): Promise<FormResult> {
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
-  if (!user || !Number.isSafeInteger(target)) return failure("دسترسی مجاز نیست.");
-  const { data: role, error: accessError } = await client.rpc("portal_access", {});
-  if (accessError || role !== "super_admin") return failure("دسترسی مجاز نیست.");
+  const session = await getSession();
+  if (!session || !Number.isSafeInteger(target)) return failure("دسترسی مجاز نیست.");
+  const { client } = session;
+  const role = await getAccessRole().catch(() => null);
+  if (role !== "super_admin") return failure("دسترسی مجاز نیست.");
   const config = collections.find(c => c.table === area && (role === "super_admin" || c.readOnly || c.id === "training"));
   let fields: readonly Field[] = area === "employees" ? [...organizationFields, { name: "manager_id", label: "شناسه سرپرست", type: "number" }] : config?.fields.filter(f => f.type !== "file" && f.name !== "employee_feedback") || [];
   const personalSection = form.get("__personal_section");
@@ -398,7 +398,7 @@ export async function saveOrganization(target: number, area: string, _previous: 
   if (recordId !== null && (!Number.isSafeInteger(recordId) || recordId <= 0)) return failure("رکورد معتبر نیست.");
   const { error } = await client.rpc("save_organization", { target, area, record_id: recordId, patch: parsed.data });
   if (error) return failure("ذخیره انجام نشد. سطح دسترسی و اطلاعات واردشده را بررسی کنید.");
-  revalidatePath("/people"); revalidatePath("/account"); revalidatePath("/dashboard");
+  revalidatePath("/(portal)", "layout");
   return { ok: true, message: "اطلاعات سازمانی ذخیره شد." };
 }
 

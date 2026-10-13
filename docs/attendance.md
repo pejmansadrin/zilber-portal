@@ -34,3 +34,15 @@ Every calendar month reserves a six-week grid with equal-height cells, including
 The request section is placed at the bottom of the attendance page. It offers explicit categories for missed entry/exit registration (either timestamp or the complete pair), correction of a selected stored timestamp, a complete mission interval inside a selected registered work session, and late-arrival explanations. Mission selection is disabled on days without a base work session. Both completed and active work sessions can contain a retrospective completed mission; future times and out-of-session missions are rejected by the database as well as the UI.
 
 Migration `20261004113000_attendance_interval_requests.sql` adds nullable `requested_until` and an authenticated invoker RPC for complete intervals. Pending interval requests preserve the attendance revision and original sessions. Approval validates and applies both endpoints in one transaction, with the existing authorization, overlap checks and stale-revision guard. Existing single-timestamp requests remain compatible. The interval integration test uses temporary auth fixtures inside a rolled-back transaction: `supabase/tests/attendance_interval_requests.sql`.
+
+## Exit state recovery (v0.1.5)
+
+The database previously used the same error for a missing open interval and a
+stale work-mode selection. These now have distinct Persian messages and SQLSTATE
+P1001/P1002. A failed registration or pending-entry exit revalidates the attendance
+page; the confirmation dialog closes so a repeated click cannot keep submitting
+its stale selection. Different work modes are still rejected rather than closing
+an unrelated interval. The release also includes pending-entry exit support.
+
+`supabase/tests/attendance_exit_state_errors.sql` covers repeated exits, no entry,
+mode mismatch, remote success and mission isolation in a rolled-back transaction.

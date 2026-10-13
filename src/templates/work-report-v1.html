@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فرم گزارش کار</title>
+<style>
+  :root{
+    --border:#000;
+    --lw:1px;
+    --bg-screen:#e7e9ee;
+    --accent:#3468b0;
+    --navy:#1f3061;
+    --ghost:#a3aab3;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg-screen);
+    font-family:"Vazirmatn","IRANSans","Tahoma","Segoe UI",sans-serif;
+    color:#111;
+    font-size:14px;
+  }
+
+  /* ---------- Toolbar (screen only) ---------- */
+  .toolbar{
+    position:sticky; top:0; z-index:100;
+    background:#20293a; color:#fff;
+    padding:10px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  .toolbar h1{ font-size:15px; margin:0; font-weight:600; }
+  .toolbar .actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .toolbar button{
+    background:var(--accent); color:#fff; border:none; border-radius:6px;
+    padding:8px 14px; font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  .toolbar button:hover{ background:#2b5590; }
+  .toolbar button.secondary{ background:#445067; }
+  .toolbar button.secondary:hover{ background:#57657f; }
+  .toolbar button.print-btn{ background:#1f8a4c; font-weight:600; }
+  .toolbar button.print-btn:hover{ background:#186e3c; }
+  .toolbar .tb-check{ font-size:12.5px; display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+  .help-bar{
+    max-width:900px; margin:14px auto 0; padding:0 14px;
+    font-size:12px; color:#4a5363; line-height:2;
+  }
+  .help-bar kbd{
+    font-family:inherit; font-size:11px; background:#fff; border:1px solid #c5cad3;
+    border-bottom-width:2px; border-radius:4px; padding:0 5px; direction:ltr; display:inline-block;
+  }
+
+  /* ---------- Page / sheet ---------- */
+  .page-wrap{ max-width:900px; margin:14px auto 60px; padding:0 14px; }
+
+  /* Header lives in <thead> and the signature block in <tfoot>, so the
+     browser repeats both on every printed page (in normal flow — no
+     position:fixed, which hides rows under it). */
+  table.page-table{ width:100%; border-collapse:collapse; border-spacing:0; }
+  table.page-table > thead > tr > td, table.page-table > tbody > tr > td, table.page-table > tfoot > tr > td{ padding:0; border:none; }
+  .page-body{ background:#fff; border:var(--lw) solid var(--border); margin-top:-1px; }
+
+  .page-header{
+    display:grid;
+    grid-template-columns:180px minmax(0,1fr) 200px;
+    background:#fff; border:var(--lw) solid var(--border);
+  }
+  .page-header .cell{ border-inline-start:var(--lw) solid var(--border); padding:8px 10px; }
+  .page-header .cell:first-child{ border-inline-start:none; }
+  .ph-logo{ display:flex; align-items:center; justify-content:center; }
+  .ph-logo svg{ height:42px; width:auto; max-width:100%; }
+  .ph-title{
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-weight:700; font-size:18px; color:var(--navy); background:#f5f7fb;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .ph-meta{ display:flex; flex-direction:column; justify-content:center; gap:4px; font-size:12px; }
+  .ph-meta .meta-pair{ display:flex; align-items:baseline; gap:6px; }
+  .ph-meta .meta-pair > label{ font-weight:600; white-space:nowrap; }
+  .ph-meta .ed-wrap{ flex:1; min-width:0; }
+  .ph-meta .ed{ border-bottom:1px solid #bbb; font-size:13px; line-height:1.6; padding:0 2px; }
+  .ph-meta .ed.ltr{ direction:ltr; text-align:center; }
+
+  /* ---------- Editable fields + ghost suggestion layer ---------- */
+  /* Every typed field is a contenteditable .ed inside .ed-wrap. A .ghost twin
+     with identical box metrics sits underneath: it repeats the typed text in
+     transparent ink and the suggested remainder in grey, so the suggestion
+     appears to continue right where the caret is. */
+  .ed-wrap{ position:relative; }
+  .ed{
+    position:relative; z-index:1;
+    outline:none; min-height:1.6em; line-height:1.9;
+    white-space:pre-wrap; overflow-wrap:anywhere;
+  }
+  .ed:empty:before{ content:attr(data-placeholder); color:#b3b8bf; font-weight:400; }
+  .ed.has-ghost:empty:before{ content:none; }
+  .ghost{
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+    white-space:pre-wrap; overflow-wrap:anywhere; overflow:hidden;
+    color:transparent; border-color:transparent !important;
+  }
+  .ghost .g-rest{ color:var(--ghost); }
+  .ed-wrap:focus-within{ background:#f6f8fb; }
+
+  /* Suggestion chips (tap targets — the touch equivalent of Tab) */
+  .sugg-bar{
+    position:absolute; z-index:900; display:none;
+    flex-wrap:wrap; gap:5px; padding:5px;
+    background:#fff; border:1px solid #cfd5de; border-radius:8px;
+    box-shadow:0 6px 16px rgba(20,30,50,.16);
+    max-width:min(520px, calc(100vw - 16px));
+  }
+  .sugg-bar.open{ display:flex; }
+  .sugg-bar .chip{
+    display:flex; align-items:center; gap:2px;
+    background:#eef2f8; border:1px solid #d8dfea; border-radius:14px;
+    font-size:12.5px; font-family:inherit; color:#22324f;
+    padding:3px 10px; cursor:pointer; max-width:100%;
+  }
+  .sugg-bar .chip:hover, .sugg-bar .chip.active{ background:#dfe8f6; border-color:#b9c9e4; }
+  .sugg-bar .chip .t{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:380px; }
+  .sugg-bar .chip .x{
+    border:none; background:none; color:#8a94a3; cursor:pointer; font-size:13px;
+    padding:0 3px; margin-inline-start:2px; line-height:1;
+  }
+  .sugg-bar .chip .x:hover{ color:#c0392b; }
+  .sugg-bar .sb-hint{ font-size:11px; color:#8a94a3; align-self:center; padding:0 4px; }
+
+  /* ---------- Body ---------- */
+  .field-row{ border-bottom:var(--lw) solid var(--border); padding:8px 10px; }
+  .field-row .label{ font-weight:700; margin-bottom:4px; }
+
+  .subject-row{
+    border-bottom:var(--lw) solid var(--border); padding:10px 10px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    font-size:15px;
+  }
+  .subject-row .label{ font-weight:700; }
+  .period-switch{ display:inline-flex; border:1px solid #c5cad3; border-radius:7px; overflow:hidden; }
+  .period-switch button{
+    border:none; background:#fff; font-family:inherit; font-size:13.5px;
+    padding:5px 14px; cursor:pointer; color:#333;
+    border-inline-start:1px solid #c5cad3;
+  }
+  .period-switch button:first-child{ border-inline-start:none; }
+  .period-switch button[aria-pressed="true"]{ background:var(--navy); color:#fff; font-weight:600; }
+  .period-print{ display:none; font-weight:700; }
+  /* Addressee ("به مدیریت" by default) — editable, never hard-coded */
+  .subject-row .recipient{ flex:1 1 170px; min-width:140px; }
+  .subject-row .recipient .ed{ border-bottom:1px dotted #aaa; line-height:1.7; padding:0 2px; }
+
+  .info-grid{
+    display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.15fr);
+    border-bottom:var(--lw) solid var(--border);
+  }
+  .info-grid .cell{
+    border-inline-start:var(--lw) solid var(--border); padding:8px 10px;
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .info-grid .cell:first-child{ border-inline-start:none; }
+  .info-grid .cell > label{ font-weight:700; white-space:nowrap; font-size:13px; }
+  .info-grid .ed-wrap{ flex:1; min-width:0; }
+
+  .date-input{
+    direction:ltr; text-align:center;
+    width:100%; border:none; border-radius:3px; padding:4px 6px;
+    font-family:inherit; font-size:13px; background:transparent; cursor:pointer; color:#111;
+  }
+  .date-input::placeholder{ color:#b3b8bf; }
+  .date-input:hover, .date-input:focus{ background:#eef1f5; outline:none; }
+  .day-name{ font-size:12.5px; color:#444; white-space:nowrap; }
+
+  .period-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .period-row > .label{ margin:0; white-space:nowrap; }
+  .period-pane{ display:none; align-items:center; gap:6px; flex-wrap:wrap; }
+  .period-pane.active{ display:flex; }
+  .period-pane .date-input{ width:118px; border-bottom:1px dotted #aaa; border-radius:0; }
+  .period-pane select, .period-pane .year-input{
+    font-family:inherit; font-size:13px; border:none; border-bottom:1px dotted #aaa;
+    background-color:transparent; padding:3px 6px; color:#111;
+  }
+  .period-pane .year-input{ width:70px; direction:ltr; text-align:center; }
+  .period-pane select{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23555' d='M5.5 7.5l4.5 4.5 4.5-4.5z'/></svg>");
+    background-repeat:no-repeat; background-position:left 4px center; background-size:14px;
+    padding-left:22px; cursor:pointer; min-width:110px;
+  }
+  .period-pane .muted{ color:#666; font-size:13px; }
+
+  .volume-box{ min-height:5.6em; padding:2px 4px; }
+
+  /* ---------- Numbered list tables (تفکیک کار / مشکلات) ---------- */
+  .list-section{ border-bottom:var(--lw) solid var(--border); }
+  .list-section:last-child{ border-bottom:none; }
+  table.list{
+    width:100%; table-layout:fixed;
+    border-collapse:separate; border-spacing:0;
+  }
+  table.list th, table.list td{
+    border-bottom:var(--lw) solid var(--border);
+    padding:3px 8px; vertical-align:top; font-size:13.5px;
+  }
+  table.list thead th{
+    background:#eef1f5; font-weight:700; text-align:center; padding:6px 8px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  table.list thead th:nth-child(1){ border-left:var(--lw) solid var(--border); }
+  table.list thead th:nth-child(3){ border-right:var(--lw) solid var(--border); border-left:var(--lw) solid var(--border); }
+  table.list col.col-num{ width:44px; }
+  table.list col.col-time{ width:96px; }
+  table.list col.col-del{ width:34px; }
+  table.list td.num-cell{
+    text-align:center; font-weight:700; color:#333;
+    border-left:var(--lw) solid var(--border); vertical-align:middle;
+  }
+  table.list td.time-cell{
+    text-align:center; vertical-align:middle;
+    border-right:var(--lw) solid var(--border);
+    border-left:var(--lw) solid var(--border);
+  }
+  table.list td.time-cell .ed{ text-align:center; border-bottom:1px dotted #aaa; margin:2px 4px; }
+  table.list td.del-cell{ text-align:center; vertical-align:middle; }
+  table.list .row-del{
+    border:none; background:transparent; color:#b4bac4; border-radius:4px;
+    width:22px; height:22px; line-height:1; cursor:pointer; font-size:15px;
+  }
+  table.list tr:hover .row-del, table.list tr:focus-within .row-del{ color:#fff; background:#c0392b; }
+  table.list tbody tr:last-child td{ border-bottom:none; }
+  table.list .ed{ line-height:1.9; }
+  .add-row-cell{
+    padding:6px 8px; border-top:var(--lw) solid var(--border);
+    display:flex; gap:10px; align-items:center;
+  }
+  .add-row-cell button{
+    background:var(--accent); color:#fff; border:none; border-radius:6px;
+    padding:6px 12px; font-size:12.5px; cursor:pointer; font-family:inherit;
+  }
+  .add-row-cell button:hover{ background:#2b5590; }
+  .add-row-cell .count{ font-size:12px; color:#6b7380; }
+
+  /* ---------- Signatures (repeating footer, lives in .page-table <tfoot>) ---------- */
+  /* Attached directly under the body (margin-top:-1px) so on every page its
+     heavy top border also closes the body box where the page breaks. */
+  .sign-block{
+    margin-top:-1px; background:#fff;
+    border:var(--lw) solid var(--border); border-top-width:2px;
+    display:grid; grid-template-columns:1fr;
+    page-break-inside:avoid; break-inside:avoid;
+  }
+  .sign-cell{ padding:10px 12px 12px; display:flex; flex-direction:column; }
+  .sign-cell + .sign-cell{ border-inline-start:var(--lw) solid var(--border); }
+  .sign-cell .lbl{ font-weight:700; margin-bottom:6px; }
+  .sign-cell .sline{ display:flex; gap:6px; font-size:13px; margin-bottom:4px; align-items:baseline; }
+  .sign-cell .sline .v{ flex:1; border-bottom:1px dotted #999; min-height:1.6em; }
+  .sign-cell .sign-space{ height:64px; }
+  /* Manager cell: intentionally NOT fillable — blank space for pen only */
+  .sign-cell .hand-space{ flex:1; min-height:64px; }
+  .sign-cell .hand-hint{ font-size:11.5px; color:#9aa1ab; }
+
+  /* ---------- Jalali date picker popover ---------- */
+  .jalali-popover{
+    display:none; position:absolute; z-index:1000; width:236px;
+    background:#fff; border:1px solid #ccc; border-radius:8px;
+    box-shadow:0 6px 18px rgba(0,0,0,.2); padding:8px; font-size:13px;
+  }
+  .jalali-popover.open{ display:block; }
+  .jp-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .jp-head button{ border:none; background:#eef1f5; border-radius:5px; width:26px; height:26px; font-size:14px; cursor:pointer; }
+  .jp-head button:hover{ background:#dde3ea; }
+  .jp-title{ font-weight:700; }
+  .jp-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+  .jp-grid .jp-dow{ font-weight:700; font-size:11px; color:#666; padding:2px 0; }
+  .jp-grid button.jp-day{ border:none; background:none; padding:5px 0; border-radius:5px; cursor:pointer; font-family:inherit; font-size:12.5px; }
+  .jp-grid button.jp-day:hover{ background:#eef1f5; }
+  .jp-grid button.jp-day.jp-today{ outline:1px solid var(--accent); }
+  .jp-grid button.jp-day.jp-sel{ background:var(--accent); color:#fff; }
+  .jp-grid button.jp-day.jp-empty{ cursor:default; }
+  .jp-foot{ display:flex; justify-content:space-between; margin-top:6px; }
+  .jp-foot button{ border:none; background:var(--accent); color:#fff; border-radius:5px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .jp-foot button.jp-clear{ background:#8a94a3; }
+
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#20293a; color:#fff; padding:8px 16px; border-radius:8px; font-size:13px;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; z-index:2000;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- Phones ---------- */
+  @media screen and (max-width:640px){
+    .toolbar{ padding:8px 12px; position:static; }
+    .toolbar h1{ font-size:14px; }
+    .toolbar button{ padding:7px 10px; font-size:12px; }
+    .page-wrap, .help-bar{ padding:0 8px; }
+    .help-bar .kb-only{ display:none; }
+    .page-header{ grid-template-columns:96px minmax(0,1fr); }
+    .page-header .ph-meta{ grid-column:1 / -1; border-inline-start:none; border-top:var(--lw) solid var(--border); }
+    .ph-title{ font-size:16px; }
+    .info-grid{ grid-template-columns:1fr; }
+    .info-grid .cell{ border-inline-start:none; border-top:var(--lw) solid var(--border); }
+    .info-grid .cell:first-child{ border-top:none; }
+    .sign-block{ grid-template-columns:1fr; }
+    .sign-cell + .sign-cell{ border-inline-start:none; border-top:var(--lw) solid var(--border); }
+    table.list col.col-num{ width:26px; }
+    table.list col.col-time{ width:82px; }
+    table.list col.col-del{ width:24px; }
+    table.list th, table.list td{ padding:3px 4px; font-size:12.5px; }
+    table.list td.time-cell .ed{ margin:1px 2px; }
+    table.list td.time-cell{ padding:3px 2px; }
+  }
+
+  /* ---------- Print ---------- */
+  @page{ size:A4; margin:12mm 10mm 14mm 10mm; }
+  @media print{
+    :root{ --lw:0.4mm; }
+    html,body{ background:#fff; font-size:12px; }
+    .toolbar, .help-bar, .no-print, .sugg-bar, .ghost, .jalali-popover, .toast{ display:none !important; }
+    .page-wrap{ max-width:none; margin:0; padding:0; }
+    .ed-wrap:focus-within{ background:none; }
+
+    /* Handwritten-form look: blank ruled space instead of hint text */
+    .ed:empty:before{ content:none !important; }
+    input::placeholder{ color:transparent !important; }
+    .date-input:placeholder-shown{ border-bottom:1px dotted #999; }
+    .ph-meta .ed{ border-bottom:1px dotted #999; }
+    table.list td.time-cell .ed:not(:empty){ border-bottom-color:transparent; }
+
+    .period-switch{ display:none; }
+    .period-print{ display:inline; }
+
+    table.page-table thead{ display:table-header-group; }
+    table.page-table tfoot{ display:table-footer-group; }
+    table.page-table tr{ page-break-inside:auto; }
+    .subject-row .recipient .ed:not(:empty){ border-bottom-color:transparent; }
+    table.list{ page-break-inside:auto; }
+    table.list tr{ page-break-inside:avoid; page-break-after:auto; }
+    table.list thead{ display:table-header-group; }
+    table.list tr.print-hide{ display:none; }
+    table.list td{ height:1.95em; padding-top:1px; padding-bottom:1px; }
+    .volume-box{ min-height:4.6em; }
+    .sign-cell{ padding:6px 10px 8px; }
+    .sign-cell .sign-space{ height:34px; }
+    .sign-cell .hand-space{ min-height:34px; }
+    .subject-row, .info-grid, .period-row{ page-break-inside:avoid; }
+  }
+  /* Print: the page is never wider than the paper, whatever width the browser lays it out at */
+  @media print{ table.page-table{ table-layout:fixed; width:100%; } }
+  /* name / date lines under the signature: short, not page-wide */
+  .sign-cell .sline .v{ flex:none !important; width:220px; }
+</style>
+<script type="application/json" id="embeddedData">__REPORT_DATA__</script></head>
+<body>
+
+  <div class="toolbar no-print">
+    <h1>فرم گزارش کار — نسخه قابل چاپ (A4)</h1>
+    <div class="actions">
+      <label class="tb-check" title="ردیف‌های خالی به صورت خطوط سفید برای دست‌نویس چاپ شوند"><input type="checkbox" id="printEmptyRows" checked=""> چاپ ردیف‌های خالی</label>
+      <button id="portalSaveBtn" hidden>ذخیره در سامانه</button>
+      <span id="portalSaveStatus" role="status" aria-live="polite"></span>
+      <button class="secondary" id="newFormBtn" title="پاک کردن فرم و شروع یک فرم خالی">فرم جدید</button>
+      <button class="secondary" id="exportBtn" title="دانلود یک فایل HTML از همین فرم با اطلاعات پرشده (قابل باز کردن و ویرایش مجدد)">خروجی HTML</button>
+      <button class="print-btn" onclick="window.print()">🖨 چاپ فرم</button>
+    </div>
+  </div>
+
+  <div class="help-bar no-print">
+    <span class="kb-only"><kbd>Tab</kbd> نوشتن عبارت خاکستری (دوباره <kbd>Tab</kbd> = عبارت بعدی) ·
+    <kbd>Enter</kbd> رفتن به ردیف بعد ·
+    <kbd>Shift+Enter</kbd> خط جدید در همان ردیف ·
+    <kbd>Backspace</kbd> روی ردیف خالی = حذف ردیف ·
+    <kbd>Esc</kbd> بستن پیشنهاد</span>
+    <span> — در گوشی، روی پیشنهادهای زیر هر خانه ضربه بزنید. برای ثبت نهایی از دکمهٔ ذخیره استفاده کنید.</span>
+  </div>
+
+  <div class="page-wrap">
+    <table class="page-table"><thead><tr><td>
+      <div class="page-header">
+        <div class="cell ph-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1920" role="img" aria-label="لوگوی زیلبر">
+          <g fill="#1f3061">
+            <path d="M85.73,1566.81h309.86l-1.59,6.96c-3.95,17.32-13.12,33-26.27,44.94h0s-186.24,172.54-186.24,172.54h161.66c28.96,0,52.44,23.48,52.44,52.44v2H85.73s.77-34.37,28.44-62.04l175.71-164.95H120.43c-19.16,0-34.7-15.54-34.7-34.7v-17.19Z"></path>
+            <polygon points="451.09 1566.81 503 1566.81 503 1845.68 450.92 1845.68 451.09 1566.81"></polygon>
+            <path d="M571.94,1566.81h51.9v182.45c0,23.3,18.89,42.2,42.2,42.2h84.03c35.9,0,48.26,19.1,48.26,36.55v17.67h-135.72c-50.16,0-90.81-40.68-90.78-90.84l.12-188.03Z"></path>
+            <path d="M1125.77,1704.16l-7.93-5.9s13.64-12.48,19.18-35.42c9.31-38.55-8.13-96.02-97.35-96.02h-193.73v49.58h212.24l.66.05c7.85.63,14.79,4.22,19.78,9.63,4.97,5.4,7.98,12.62,7.98,20.49,0,16.54-11.25,30.97-27.3,34.98l-1.12.27h-212.24v163.87h242.86c22.28,0,48.55-21.45,59.2-40.97,8.18-14.98,20.4-74.62-22.22-100.57ZM1076.42,1792.74l-177.4,1.18v-63.92l178.93,1.18c34.46,0,32.54,61.56-1.54,61.56Z"></path>
+            <path d="M1453.78,1565.85c0,28.67-23.24,51.91-51.91,51.91h-209.85c0-.58,0-1.12.03-1.67v-.14c1.48-27.82,24.72-50.1,52.9-50.1h208.84Z"></path>
+            <path d="M1454.17,1794.14v36.05c0,3.9-1.37,7.46-3.62,10.29-.27.33-.52.63-.82.91-2.77,2.77-6.58,4.5-10.78,4.5h-169.96c-18.52,0-35.56-6.64-48.89-17.64-.93-.74-1.81-1.51-2.69-2.3-.82-.77-1.62-1.54-2.41-2.33-.93-.91-1.84-1.87-2.72-2.83-12.57-13.91-20.25-32.35-20.25-52.59v-86.37l51.75,50.62-.12,30.86c-.55,16.32,12.48,29.88,28.81,29.96l181.7.88Z"></path>
+            <rect x="1254.56" y="1679.81" width="176.9" height="53.02" rx="19.2" ry="19.2"></rect>
+            <path d="M1501.67,1566.33h228.98c13.83,0,27.52,2.94,40,8.89,22.42,10.67,50.88,33.14,50.88,78.45,0,68.46-77.08,93.93-77.08,93.93l89.79,99.15h-71.78l-85.73-99.15h-119.81v99.15h-55.26v-151.83h234.85c36.54,0,38.6-76.43.39-76.43h-235.23v-52.16Z"></path>
+          </g>
+          <g fill="#1f3061">
+            <path d="M289.47,393.81l195.49-208.23c57.93-61.7,135.79-103.27,220.17-109.75,8.81-.68,17.66-1.02,26.54-1.02l1085.26-1.56L402.13,1337.66c-75.93,61.37-133.1,94.84-230.73,94.84h-85.67l981.42-1008.26c11.06-11.36,3.01-30.44-12.85-30.44H289.47Z"></path>
+            <path d="M1605.22,1130.23l-181.97,194.07c-28.4,30.29-61.73,56.26-99.99,72.39-85.24,35.93-177.43,35.14-271.04,35.14l-878.67.75L1354.1,352.88c77.65-60.32,315.07-272.49,413.14-279.63h67.04l-955.35,1026.83c-10.67,11.47-2.54,30.15,13.13,30.15h713.16Z"></path>
+          </g>
+        </svg>
+        </div>
+        <div class="cell ph-title">فرم گزارش کار</div>
+        <div class="cell ph-meta">
+          <div class="meta-pair"><label>شماره گزارش:</label>
+            <div class="ed-wrap"><div class="ed ltr" contenteditable="true" data-key="fileNo" data-single="" data-placeholder="—"></div></div>
+          </div>
+          <div class="meta-pair"><label>پیوست:</label>
+            <div class="ed-wrap"><div class="ed" contenteditable="true" data-key="attach" data-single="" data-openers="ندارد|دارد" data-placeholder="—"></div></div>
+          </div>
+        </div>
+      </div>
+    </td></tr></thead><tbody><tr><td>
+      <div class="page-body">
+
+        <!-- Subject + period -->
+        <div class="subject-row">
+          <span class="label">موضوع:</span>
+          <span>گزارش</span>
+          <span class="period-switch no-print" role="group" aria-label="دوره گزارش">
+            <button type="button" data-period="daily">روزانه</button>
+            <button type="button" data-period="weekly">هفتگی</button>
+            <button type="button" data-period="monthly">ماهانه</button>
+          </span>
+          <span class="period-print" id="periodPrint">(روزانه / هفتگی / ماهانه)</span>
+          <div class="ed-wrap recipient"><div class="ed" contenteditable="true" data-key="recipient" data-single="" data-default="به مدیریت" data-openers="به مدیریت|به مدیر عامل|به مدیریت محترم |به معاونت |به سرپرست " data-phrases="به مدیریت محترم عامل|به مدیریت واحد |به مدیریت منابع انسانی|به مدیریت مالی|به مدیریت اداری|به مدیریت فنی|به مدیریت بازرگانی|به هیئت مدیره|به ریاست " data-placeholder="به مدیریت …"></div></div>
+        </div>
+
+        <!-- Department / date / reporter -->
+        <div class="info-grid">
+          <div class="cell"><label>بخش گزارش‌کننده:</label>
+            <div class="ed-wrap"><div class="ed" contenteditable="true" data-key="dept" data-single="" data-phrases="واحد اداری|واحد مالی|واحد منابع انسانی|واحد بازرگانی|واحد فنی|واحد فروش|واحد انبار|واحد فناوری اطلاعات" data-placeholder="نام واحد / بخش"></div></div>
+          </div>
+          <div class="cell"><label>تاریخ:</label>
+            <input type="text" class="date-input jalali-date" id="reportDate" data-key="reportDate" placeholder="انتخاب تاریخ" readonly="">
+          </div>
+          <div class="cell"><label>نام گزارش‌کننده:</label>
+            <div class="ed-wrap"><div class="ed" contenteditable="true" id="reporterName" data-key="reporter" data-single="" data-placeholder="نام و نام خانوادگی"></div></div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="label">نام کاربری:</div>
+          <div class="ed-wrap"><div class="ed ltr" contenteditable="true" data-key="username" data-single="" data-placeholder="نام کاربری سازمانی"></div></div>
+        </div>
+        <!-- Period covered -->
+        <div class="field-row period-row">
+          <div class="label">گزارش مربوط به:</div>
+          <div class="period-pane" data-pane="none"><span class="muted">(روز / هفته / ماه)</span></div>
+          <div class="period-pane" data-pane="daily">
+            <span class="muted">روز</span>
+            <span class="day-name" id="dayName"></span>
+            <input type="text" class="date-input jalali-date" id="dayDate" data-key="dayDate" placeholder="تاریخ" readonly="">
+          </div>
+          <div class="period-pane" data-pane="weekly">
+            <span class="muted">هفته از</span>
+            <span class="day-name" id="weekFromName"></span>
+            <input type="text" class="date-input jalali-date" id="weekFrom" data-key="weekFrom" placeholder="تاریخ" readonly="">
+            <span class="muted">تا</span>
+            <span class="day-name" id="weekToName"></span>
+            <input type="text" class="date-input jalali-date" id="weekTo" data-key="weekTo" placeholder="تاریخ" readonly="">
+          </div>
+          <div class="period-pane" data-pane="monthly">
+            <span class="muted">ماه</span>
+            <select id="monthSel" data-key="month"><option value=""></option></select>
+            <span class="muted">سال</span>
+            <input type="text" class="year-input" id="yearInput" data-key="year" inputmode="numeric" maxlength="4" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Work volume -->
+        <div class="field-row">
+          <div class="label">حجم کار انجام شده:</div>
+          <div class="ed-wrap"><div class="ed volume-box" contenteditable="true" data-key="volume" id="volumeBox" data-openers="در این روز، |در طول هفته جاری، |در طول ماه جاری، " data-phrases="تعداد |کلیه امور محوله طبق برنامه انجام شد.|علاوه بر امور جاری، |بخش عمده وقت صرف " data-placeholder="خلاصه‌ای از میزان و حجم کارهای انجام‌شده در این دوره…"></div></div>
+        </div>
+
+        <!-- Task breakdown -->
+        <div class="list-section">
+          <table class="list">
+            <colgroup><col class="col-num"><col><col class="col-time"><col class="col-del no-print"></colgroup>
+            <thead><tr><th>ردیف</th><th>تفکیک کار انجام شده</th><th>زمان صرف‌شده</th><th class="no-print"></th></tr></thead>
+            <tbody data-list="tasks" data-initial="10" data-openers="انجام |پیگیری |بررسی |هماهنگی با |تهیه و ارسال |شرکت در جلسه " data-phrases="پیگیری و انجام امور جاری واحد|تهیه و ارسال گزارش به مدیریت|بررسی و پاسخ به مکاتبات|هماهنگی با واحدهای مرتبط|ثبت و بایگانی مدارک|به‌روزرسانی اطلاعات |کنترل و بازبینی |تکمیل |پاسخگویی به |ارسال |تحویل |برگزاری " data-placeholder="شرح کار انجام‌شده…" data-time-placeholder="۲ ساعت"></tbody>
+          </table>
+          <div class="add-row-cell no-print">
+            <button type="button" data-add="tasks">+ افزودن ردیف</button>
+            <span class="count" data-count="tasks"></span>
+          </div>
+        </div>
+
+        <!-- Problems -->
+        <div class="list-section">
+          <table class="list">
+            <colgroup><col class="col-num"><col><col class="col-time"><col class="col-del no-print"></colgroup>
+            <thead><tr><th>ردیف</th><th>مشکلات به وجود آمده</th><th>زمان صرف‌شده</th><th class="no-print"></th></tr></thead>
+            <tbody data-list="problems" data-initial="5" data-openers="عدم |تأخیر در |کمبود |نقص در |مشکل در " data-phrases="موردی وجود نداشت.|عدم هماهنگی بین واحدها|عدم دسترسی به اطلاعات مورد نیاز|تأخیر در دریافت مدارک|کمبود نیرو|کمبود تجهیزات|قطعی سیستم / اینترنت|خرابی تجهیزات" data-placeholder="شرح مشکل…" data-time-placeholder="۲ ساعت"></tbody>
+          </table>
+          <div class="add-row-cell no-print">
+            <button type="button" data-add="problems">+ افزودن ردیف</button>
+            <span class="count" data-count="problems"></span>
+          </div>
+        </div>
+
+        <!-- Future tasks (next day / week / month) -->
+        <div class="list-section">
+          <table class="list">
+            <colgroup><col class="col-num"><col><col class="col-time"><col class="col-del no-print"></colgroup>
+            <thead><tr><th>ردیف</th><th id="futureTasksTitle">کارهای روز آینده، هفته آینده یا ماه آینده</th><th>زمان مورد انتظار</th><th class="no-print"></th></tr></thead>
+            <tbody data-list="futureTasks" data-initial="5" data-openers="پیگیری |انجام |بررسی |شروع |تکمیل |هماهنگی با " data-phrases="پیگیری و تکمیل امور جاری واحد|آغاز |ادامه |بررسی و پیگیری |هماهنگی با واحدهای مرتبط|تهیه و ارسال گزارش " data-placeholder="شرح کار برنامه‌ریزی‌شده…" data-time-placeholder="۱ روز"></tbody>
+          </table>
+          <div class="add-row-cell no-print">
+            <button type="button" data-add="futureTasks">+ افزودن ردیف</button>
+            <span class="count" data-count="futureTasks"></span>
+          </div>
+        </div>
+
+      </div>
+    </td></tr></tbody>
+    <tfoot><tr><td>
+      <!-- Signature footer: native <tfoot>, repeated by the browser at the bottom of every printed page -->
+      <div class="sign-block">
+        <div class="sign-cell">
+          <div class="lbl">امضاء گزارش‌کننده:</div>
+          <div class="sline"><span>نام:</span><span class="v" id="signName"></span></div>
+          <div class="sline"><span>تاریخ:</span><span class="v" id="signDate" dir="ltr" style="text-align:right"></span></div>
+          <div class="sign-space"></div>
+        </div>
+      </div>
+    </td></tr></tfoot></table>
+  </div>
+
+  <!-- Shared suggestion chips (positioned under the focused field) -->
+  <div class="sugg-bar no-print" id="suggBar"></div>
+
+  <!-- Jalali date picker popover -->
+  <div class="jalali-popover no-print" id="jalaliPopover">
+    <div class="jp-head">
+      <button type="button" id="jpPrev">‹</button>
+      <span class="jp-title" id="jpTitle"></span>
+      <button type="button" id="jpNext">›</button>
+    </div>
+    <div class="jp-grid" id="jpGrid"></div>
+    <div class="jp-foot">
+      <button type="button" id="jpClear" class="jp-clear">پاک کردن</button>
+      <button type="button" id="jpToday">امروز</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const portalEl = document.getElementById('portalContext');
+  const portal = portalEl ? JSON.parse(portalEl.textContent) : null;
+  const FORM_ID = 'work-report';
+  // Pristine copy of the page, taken before any script touches the DOM;
+  // "خروجی HTML" writes this out again with the filled data embedded.
+  const PRISTINE = document.documentElement.cloneNode(true);
+  const embeddedEl = document.getElementById('embeddedData');
+  let embedded = null;
+  try{ embedded = embeddedEl ? JSON.parse(embeddedEl.textContent) : null; }catch(e){ embedded = null; }
+  const oldEmbedded = PRISTINE.querySelector('#embeddedData');
+  if(oldEmbedded) oldEmbedded.remove();
+  const oldPortal = PRISTINE.querySelector('#portalContext');
+  if(oldPortal) oldPortal.remove();
+  // An exported file keeps its own draft slot so it never clobbers the blank form's draft
+  const DRAFT_KEY = 'companyForms.draft.' + FORM_ID + (embedded && embedded.exportId ? ':' + embedded.exportId : '');
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+  function toFa(s){ return String(s).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+  function toEnDigits(s){ return String(s).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); }
+  function safeGet(k){ try{ return portal ? null : localStorage.getItem(k); }catch(e){ return null; } }
+  function safeSet(k, v){ try{ if(!portal) localStorage.setItem(k, v); }catch(e){} }
+  function safeDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // =====================================================================
+  //  Form phrases (fixed, part of the form — nothing is learned from users)
+  //   data-openers="a|b|c"  usual ways the field starts. On an empty field
+  //                         the first one shows as grey ghost text; Tab
+  //                         writes it in, Tab again swaps to the next one.
+  //   data-phrases="x|y"    longer standard wording, offered as soon as
+  //                         what is typed matches its beginning.
+  //  List rows read both attributes from their <tbody data-list>.
+  // =====================================================================
+  function norm(s){
+    return String(s || '').replace(/\u064A/g, 'ی').replace(/\u0643/g, 'ک')
+      .replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/^ +/, '');
+  }
+  function clean(s){ return norm(s).replace(/\s*\n\s*/g, ' ').trim(); }
+
+  const Phrases = (function(){
+    function attr(el, name){
+      let src = el.dataset[name];
+      if(src == null){ const tb = el.closest('[data-list]'); src = tb ? tb.dataset[name] : ''; }
+      return (src || '').split('|').filter(Boolean);
+    }
+    function openers(el){ return attr(el, 'openers'); }
+    function all(el){ return Array.from(new Set(openers(el).concat(attr(el, 'phrases')))); }
+
+    // Returns { ghost: full text that continues what was typed | null,
+    //           list: phrases for the chips }
+    function compute(el, raw){
+      const typed = norm(raw);
+      if(!typed.trim()){
+        const ops = openers(el);
+        return { ghost: ops[0] || null, list: all(el).slice(0, 8) };
+      }
+      const lower = typed.toLowerCase();
+      const list = all(el).filter(p => {
+        const n = norm(p).toLowerCase();
+        return n.startsWith(lower) && n.trimEnd().length > lower.trimEnd().length;
+      });
+      let ghost = list[0] || null;
+
+      // No whole phrase matches: just finish the current word from the
+      // form's own vocabulary (e.g. "هماه" -> "هماهنگی")
+      if(!ghost && !/ $/.test(typed)){
+        const last = typed.trim().split(' ').pop();
+        if(last.length >= 2){
+          const words = all(el).join(' ').split(/\s+/);
+          const w = words.find(x => x.length > last.length && x.startsWith(last));
+          if(w) ghost = typed + w.slice(last.length);
+        }
+      }
+      if(ghost){
+        const g = norm(ghost);
+        ghost = g.toLowerCase().startsWith(lower) ? raw + g.slice(typed.length) : null;
+      }
+      return { ghost, list:list.slice(0, 8) };
+    }
+    return { compute, openers };
+  })();
+
+  // =====================================================================
+  //  Editable fields: ghost layer, keyboard, chips
+  // =====================================================================
+  function getText(el){
+    let t = el.innerText.replace(/ /g, ' ').replace(/\r/g, '');
+    if(el.lastChild && el.lastChild.nodeName === 'BR') t = t.replace(/\n$/, '');
+    if(!t.trim() && el.innerHTML !== '' && !el.textContent.trim()) return '';
+    return t;
+  }
+  function setText(el, t){
+    el.textContent = t;
+    el.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+  function placeCaretEnd(el){
+    el.focus();
+    const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  function caretAtEnd(el){
+    const s = getSelection();
+    if(!s.rangeCount) return false;
+    const r = s.getRangeAt(0);
+    if(!r.collapsed || !el.contains(r.endContainer)) return false;
+    const post = document.createRange();
+    post.selectNodeContents(el);
+    post.setStart(r.endContainer, r.endOffset);
+    return post.toString() === '';
+  }
+  function caretAtStart(el){
+    const s = getSelection();
+    if(!s.rangeCount) return false;
+    const r = s.getRangeAt(0);
+    if(!r.collapsed || !el.contains(r.startContainer)) return false;
+    const pre = document.createRange();
+    pre.selectNodeContents(el);
+    pre.setEnd(r.startContainer, r.startOffset);
+    return pre.toString() === '';
+  }
+
+  function ensureGhost(el){
+    let g = el._ghost;
+    if(!g){
+      g = document.createElement('div');
+      g.className = 'ghost';
+      g.setAttribute('aria-hidden', 'true');
+      el.parentNode.insertBefore(g, el);
+      el._ghost = g;
+    }
+    // Mirror box metrics so wrapped lines line up exactly
+    const cs = getComputedStyle(el);
+    ['paddingTop','paddingRight','paddingBottom','paddingLeft','fontSize','fontWeight','lineHeight','textAlign','direction','letterSpacing']
+      .forEach(p => g.style[p] = cs[p]);
+    ['Top','Right','Bottom','Left'].forEach(side => {
+      g.style['border' + side + 'Width'] = cs['border' + side + 'Width'];
+      g.style['border' + side + 'Style'] = cs['border' + side + 'Style'];
+    });
+    return g;
+  }
+  const isLetter = ch => /[؀-ۿ]/.test(ch || '');
+
+  const bar = $('#suggBar');
+  let current = null;   // { el, ghost, list }
+
+  function refresh(el){
+    if(document.activeElement !== el){ hideGhost(el); return; }
+    const text = getText(el);
+    const res = Phrases.compute(el, text);
+    const atEnd = caretAtEnd(el);
+    const g = ensureGhost(el);
+    g.textContent = '';
+    el.classList.remove('has-ghost');
+    current = { el, ghost:null, list:res.list };
+    if(res.ghost && atEnd && res.ghost.length > text.length && !el._ghostDismissed){
+      const rest = res.ghost.slice(text.length);
+      const joined = isLetter(text.slice(-1)) && isLetter(rest[0]);  // mid-word: keep Persian letters joined
+      const a = document.createElement('span'); a.textContent = text + (joined ? '‍' : '');
+      const b = document.createElement('span'); b.className = 'g-rest'; b.textContent = (joined ? '‍' : '') + rest;
+      g.append(a, b);
+      el.classList.add('has-ghost');
+      current.ghost = res.ghost;
+    }
+    renderChips(el, res.list);
+  }
+  function hideGhost(el){
+    if(el && el._ghost){ el._ghost.textContent = ''; el.classList.remove('has-ghost'); }
+  }
+  // Computed fresh at keypress, so it never depends on an earlier refresh
+  function acceptGhost(el){
+    if(el._ghostDismissed) return false;
+    const text = getText(el);
+    if(text && !caretAtEnd(el)) return false;
+    const ops = Phrases.openers(el);
+    // Tab again right after an opener was written: swap to the next opener
+    if(el._cycling && ops.length > 1){
+      const i = ops.findIndex(o => norm(o) === norm(text));
+      if(i >= 0){
+        setText(el, ops[(i + 1) % ops.length]);
+        placeCaretEnd(el); el._cycling = true; refresh(el);
+        return true;
+      }
+    }
+    const res = Phrases.compute(el, text);
+    if(!res.ghost || res.ghost.length <= text.length) return false;
+    setText(el, res.ghost);
+    placeCaretEnd(el);
+    el._cycling = !text.trim();
+    refresh(el);
+    return true;
+  }
+
+  function renderChips(el, list){
+    bar.innerHTML = '';
+    const text = clean(getText(el));
+    const items = list.filter(v => v.trim() !== text);
+    if(!items.length){ bar.classList.remove('open'); return; }
+    items.forEach(v => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      const t = document.createElement('span'); t.className = 't'; t.textContent = v.trim(); t.title = v;
+      chip.appendChild(t);
+      chip.addEventListener('pointerdown', ev => ev.preventDefault());   // keep focus in field
+      chip.addEventListener('mousedown', ev => ev.preventDefault());
+      chip.addEventListener('click', () => {
+        setText(el, v);
+        placeCaretEnd(el);
+        el._ghostDismissed = false;
+        refresh(el);
+      });
+      bar.appendChild(chip);
+    });
+    const r = el.getBoundingClientRect();
+    bar.classList.add('open');
+    const bw = bar.offsetWidth;
+    let right = document.documentElement.clientWidth - r.right;       // RTL: align to field's right edge
+    right = Math.max(8, Math.min(right, document.documentElement.clientWidth - bw - 8));
+    bar.style.top = (window.scrollY + r.bottom + 4) + 'px';
+    bar.style.right = right + 'px';
+    bar.style.left = 'auto';
+  }
+  function hideChips(){ bar.classList.remove('open'); }
+
+  // Focus navigation across all fillable controls, in document order
+  function focusables(){
+    return $$('.ed, .page-wrap input.date-input, .page-wrap select, .page-wrap .year-input')
+      .filter(x => x.offsetParent !== null);
+  }
+  function focusSibling(el, dir){
+    const all = focusables();
+    const i = all.indexOf(el);
+    const next = all[i + dir];
+    if(next){ next.isContentEditable ? placeCaretEnd(next) : next.focus(); }
+  }
+
+  function bindEditable(el){
+    if(el._bound) return;
+    el._bound = true;
+    el.addEventListener('focus', () => { el._ghostDismissed = false; refresh(el); });
+    el.addEventListener('blur', () => {
+      hideGhost(el);
+      setTimeout(() => { if(!bar.contains(document.activeElement) && document.activeElement !== el && (!current || current.el === el)) hideChips(); }, 120);
+      // Trim stray <br> left by the browser so :empty placeholder works
+      if(!el.textContent.trim() && el.innerHTML !== '') el.innerHTML = '';
+    });
+    el.addEventListener('input', () => {
+      if(!el.textContent && el.innerHTML !== '') el.innerHTML = '';
+      el._ghostDismissed = false;
+      el._cycling = false;
+      refresh(el);
+      scheduleSave();
+    });
+    el.addEventListener('keyup', ev => {
+      if(['ArrowLeft','ArrowRight','Home','End'].includes(ev.key)) refresh(el);
+    });
+    el.addEventListener('click', () => refresh(el));
+    el.addEventListener('paste', ev => {
+      ev.preventDefault();
+      const txt = (ev.clipboardData || window.clipboardData).getData('text/plain') || '';
+      const row = el.closest('tr[data-row]');
+      if(row && /\n/.test(txt.trim())){
+        // Multi-line paste into a list: one line per row, drop "1-", "۱.", "•" prefixes
+        const lines = txt.split(/\r?\n/).map(l => l.replace(/^\s*([0-9۰-۹]+\s*[-.)٫]|[-•*●▪])\s*/, '').trim()).filter(Boolean);
+        const first = lines.shift();
+        document.execCommand('insertText', false, first);
+        let after = row;
+        lines.forEach(line => { after = Lists.insertAfter(after, line); });
+        Lists.focusRow(after);
+      } else {
+        const single = el.hasAttribute('data-single');
+        document.execCommand('insertText', false, single ? txt.replace(/\s*\r?\n\s*/g, ' ') : txt);
+      }
+    });
+    el.addEventListener('keydown', ev => {
+      const row = el.closest('tr[data-row]');
+      if(ev.key === 'Tab' && !ev.shiftKey && !ev.ctrlKey && !ev.altKey){
+        if(acceptGhost(el)){ ev.preventDefault(); return; }
+      }
+      // In RTL "forward" is ArrowLeft: at the end of the text it takes the suggestion
+      if(ev.key === 'ArrowLeft' && !ev.shiftKey && !ev.ctrlKey && el.classList.contains('has-ghost') && caretAtEnd(el)){
+        if(acceptGhost(el)){ ev.preventDefault(); return; }
+      }
+      if(ev.key === 'Escape'){
+        if(el.classList.contains('has-ghost') || bar.classList.contains('open')){
+          ev.preventDefault(); el._ghostDismissed = true; hideGhost(el); hideChips();
+        }
+        return;
+      }
+      if(ev.key === 'Enter' && !ev.isComposing){
+        if(ev.shiftKey){
+          if(el.hasAttribute('data-single')){ ev.preventDefault(); }
+          else { ev.preventDefault(); document.execCommand('insertLineBreak'); }
+          return;
+        }
+        if(row){ ev.preventDefault(); Lists.next(row); return; }
+        if(el.hasAttribute('data-single')){ ev.preventDefault(); focusSibling(el, 1); return; }
+        return;  // multi-line boxes: normal new line
+      }
+      if(row && ev.key === 'Backspace' && !getText(el) && Lists.isEmpty(row)){
+        ev.preventDefault(); Lists.removeAndFocusPrev(row); return;
+      }
+      if(row && ev.key === 'ArrowDown' && !/\n/.test(getText(el))){
+        ev.preventDefault(); Lists.focusRow(row.nextElementSibling || row); return;
+      }
+      if(row && ev.key === 'ArrowUp' && !/\n/.test(getText(el))){
+        ev.preventDefault(); Lists.focusRow(row.previousElementSibling || row); return;
+      }
+    });
+  }
+
+  // =====================================================================
+  //  Numbered lists (تفکیک کار انجام شده / مشکلات به وجود آمده)
+  // =====================================================================
+  const Lists = (function(){
+    function body(name){ return $('tbody[data-list="' + name + '"]'); }
+    function isEmpty(tr){ return $$('.ed', tr).every(e => !getText(e).trim()); }
+    function renumber(tb){
+      $$('tr', tb).forEach((tr, i) => { tr.querySelector('.num-cell').textContent = toFa(i + 1) + '-'; });
+      const c = $('[data-count="' + tb.dataset.list + '"]');
+      if(c){
+        const filled = $$('tr', tb).filter(tr => getText(tr.querySelector('.ed')).trim()).length;
+        c.textContent = toFa(filled) + ' مورد ثبت شده';
+      }
+    }
+    function makeRow(tb, item){
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-row', '');
+      tr.innerHTML =
+        '<td class="num-cell"></td>' +
+        '<td><div class="ed-wrap"><div class="ed" contenteditable="true"></div></div></td>' +
+        '<td class="time-cell"><div class="ed-wrap"><div class="ed" contenteditable="true" data-sub data-single data-openers="" data-phrases=""></div></div></td>' +
+        '<td class="del-cell no-print"><button type="button" class="row-del" title="حذف ردیف" tabindex="-1">×</button></td>';
+      const ed = tr.querySelector('.ed');
+      const timeEd = tr.querySelector('[data-sub]');
+      const v = item && typeof item === 'object' ? item : { text: item || '' };
+      ed.setAttribute('data-placeholder', tb.dataset.placeholder || '');
+      if(tb.dataset.opener) ed.dataset.opener = tb.dataset.opener;
+      if(v.text) ed.textContent = v.text;
+      timeEd.setAttribute('data-placeholder', tb.dataset.timePlaceholder || '');
+      if(v.time) timeEd.textContent = v.time;
+      bindEditable(ed);
+      bindEditable(timeEd);
+      ed.addEventListener('input', () => renumber(tb));
+      timeEd.addEventListener('input', () => renumber(tb));
+      tr.querySelector('.row-del').onclick = () => {
+        if($$('tr', tb).length > 1) tr.remove(); else { setText(ed, ''); setText(timeEd, ''); }
+        renumber(tb); scheduleSave();
+      };
+      return tr;
+    }
+    function add(name, item, focus){
+      const tb = body(name);
+      const tr = makeRow(tb, item);
+      tb.appendChild(tr);
+      renumber(tb);
+      if(focus) focusRow(tr);
+      return tr;
+    }
+    function insertAfter(row, item){
+      const tb = row.parentNode;
+      const tr = makeRow(tb, item);
+      row.after(tr);
+      renumber(tb); scheduleSave();
+      return tr;
+    }
+    function focusRow(tr){ if(tr) placeCaretEnd(tr.querySelector('.ed')); }
+    function next(row){
+      const n = row.nextElementSibling;
+      if(n) focusRow(n);
+      else focusRow(insertAfter(row, ''));
+    }
+    function removeAndFocusPrev(row){
+      const tb = row.parentNode;
+      const prev = row.previousElementSibling;
+      if(!prev || !isEmpty(row)) return;
+      row.remove(); renumber(tb); focusRow(prev); scheduleSave();
+    }
+    function values(name){
+      return $$('tr', body(name)).map(tr => ({
+        text: getText(tr.querySelector('.ed')),
+        time: getText(tr.querySelector('[data-sub]'))
+      }));
+    }
+    function set(name, arr){
+      const tb = body(name);
+      tb.innerHTML = '';
+      const n = Math.max((arr && arr.length) || 0, 1);
+      for(let i = 0; i < n; i++) tb.appendChild(makeRow(tb, arr[i] || ''));
+      renumber(tb);
+    }
+    function reset(name){
+      const tb = body(name);
+      set(name, new Array(parseInt(tb.dataset.initial, 10) || 5).fill(''));
+    }
+    function names(){ return $$('tbody[data-list]').map(tb => tb.dataset.list); }
+    return { add, insertAfter, focusRow, next, removeAndFocusPrev, values, set, reset, names, isEmpty };
+  })();
+
+  $$('[data-add]').forEach(btn => btn.onclick = () => Lists.add(btn.dataset.add, '', true));
+
+  // =====================================================================
+  //  Jalali calendar
+  // =====================================================================
+  function jalaliToGregorian(jy, jm, jd){
+    var gy = (jy <= 979) ? 621 : 1600;
+    jy = (jy <= 979) ? jy : jy - 979;
+    var days = (365 * jy) + (Math.floor(jy / 33) * 8) + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+    gy += 400 * Math.floor(days / 146097);
+    days %= 146097;
+    if(days > 36524){ gy += 100 * Math.floor(--days / 36524); days %= 36524; if(days >= 365) days++; }
+    gy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    if(days > 365){ gy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+    var gd = days + 1;
+    var gDaysInMonth = [31, ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var gm;
+    for(gm = 0; gm < 13; gm++){ var v = gDaysInMonth[gm]; if(gd <= v) break; gd -= v; }
+    return [gy, gm + 1, gd];
+  }
+  function gregorianToJalali(gy, gm, gd){
+    var g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    var jy = (gy <= 1600) ? 0 : 979;
+    gy = (gy <= 1600) ? gy - 621 : gy - 1600;
+    var gy2 = (gm > 2) ? (gy + 1) : gy;
+    var days = (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + g_d_m[gm - 1];
+    jy += 33 * Math.floor(days / 12053);
+    days %= 12053;
+    jy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    if(days > 365){ jy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+    var jm, jd;
+    if(days < 186){ jm = 1 + Math.floor(days / 31); jd = 1 + (days % 31); }
+    else { jm = 7 + Math.floor((days - 186) / 30); jd = 1 + ((days - 186) % 30); }
+    return [jy, jm, jd];
+  }
+  function jToDate(j){ const g = jalaliToGregorian(j[0], j[1], j[2]); return new Date(g[0], g[1] - 1, g[2]); }
+  function dateToJ(d){ return gregorianToJalali(d.getFullYear(), d.getMonth() + 1, d.getDate()); }
+  function jAddDays(j, n){ const d = jToDate(j); d.setDate(d.getDate() + n); return dateToJ(d); }
+  function jFormat(j){ return j[0] + '/' + pad2(j[1]) + '/' + pad2(j[2]); }
+  function jParse(v){
+    const m = /^(\d{3,4})\/(\d{1,2})\/(\d{1,2})$/.exec(toEnDigits(v || '').trim());
+    return m ? [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)] : null;
+  }
+  function jMonthLength(jy, jm){
+    if(jm <= 6) return 31;
+    if(jm <= 11) return 30;
+    const a = jToDate([jy, 1, 1]), b = jToDate([jy + 1, 1, 1]);
+    return Math.round((b - a) / 864e5) === 366 ? 30 : 29;
+  }
+  const JMONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  const JDOW = ['ش','ی','د','س','چ','پ','ج'];
+  const WEEKDAY = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];   // by JS getDay()
+  function weekdayName(j){ return WEEKDAY[jToDate(j).getDay()]; }
+  function weekStart(j){ const dow = (jToDate(j).getDay() + 1) % 7; return jAddDays(j, -dow); }  // Saturday
+  const todayJ = dateToJ(new Date());
+
+  const popover = $('#jalaliPopover'), jpTitle = $('#jpTitle'), jpGrid = $('#jpGrid');
+  let activeField = null, viewY = todayJ[0], viewM = todayJ[1];
+  function setDateField(field, v){
+    field.value = v;
+    field.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+  function renderCalendar(){
+    jpTitle.textContent = JMONTHS[viewM - 1] + ' ' + toFa(viewY);
+    jpGrid.innerHTML = '';
+    JDOW.forEach(d => { const el = document.createElement('div'); el.className = 'jp-dow'; el.textContent = d; jpGrid.appendChild(el); });
+    const lead = (jToDate([viewY, viewM, 1]).getDay() + 1) % 7;
+    const len = jMonthLength(viewY, viewM);
+    const cur = activeField ? jParse(activeField.value) : null;
+    for(let i = 0; i < lead; i++){
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'jp-day jp-empty'; el.disabled = true; jpGrid.appendChild(el);
+    }
+    for(let d = 1; d <= len; d++){
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'jp-day';
+      if(viewY === todayJ[0] && viewM === todayJ[1] && d === todayJ[2]) el.classList.add('jp-today');
+      if(cur && cur[0] === viewY && cur[1] === viewM && cur[2] === d) el.classList.add('jp-sel');
+      el.textContent = toFa(d);
+      el.onclick = () => { if(activeField) setDateField(activeField, jFormat([viewY, viewM, d])); closePopover(); };
+      jpGrid.appendChild(el);
+    }
+  }
+  function openPopover(field){
+    if(field.disabled) return;
+    activeField = field;
+    const p = jParse(field.value);
+    if(p){ viewY = p[0]; viewM = p[1]; } else { viewY = todayJ[0]; viewM = todayJ[1]; }
+    renderCalendar();
+    hideChips();
+    const r = field.getBoundingClientRect();
+    popover.style.top = (window.scrollY + r.bottom + 4) + 'px';
+    let left = window.scrollX + r.left;
+    const maxLeft = window.scrollX + document.documentElement.clientWidth - 244;
+    if(left > maxLeft) left = Math.max(8, maxLeft);
+    popover.style.left = left + 'px';
+    popover.classList.add('open');
+  }
+  function closePopover(){ popover.classList.remove('open'); activeField = null; }
+  document.addEventListener('click', e => {
+    const field = e.target.closest('.jalali-date');
+    if(field){ openPopover(field); return; }
+    if(!e.target.closest('#jalaliPopover')) closePopover();
+  });
+  $$('.jalali-date').forEach(f => f.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openPopover(f); }
+    else if(e.key === 'Escape') closePopover();
+    else if(e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); setDateField(f, ''); }
+  }));
+  $('#jpPrev').onclick = () => { viewM--; if(viewM < 1){ viewM = 12; viewY--; } renderCalendar(); };
+  $('#jpNext').onclick = () => { viewM++; if(viewM > 12){ viewM = 1; viewY++; } renderCalendar(); };
+  $('#jpToday').onclick = () => { if(activeField) setDateField(activeField, jFormat(todayJ)); closePopover(); };
+  $('#jpClear').onclick = () => { if(activeField) setDateField(activeField, ''); closePopover(); };
+
+  // =====================================================================
+  //  Period (روزانه / هفتگی / ماهانه) and its "گزارش مربوط به" fields
+  // =====================================================================
+  const PERIOD_LABEL = { daily:'روزانه', weekly:'هفتگی', monthly:'ماهانه' };
+  const reportDate = $('#reportDate'), dayDate = $('#dayDate'), weekFrom = $('#weekFrom'), weekTo = $('#weekTo');
+  const monthSel = $('#monthSel'), yearInput = $('#yearInput');
+  JMONTHS.forEach((m, i) => { const o = document.createElement('option'); o.value = i + 1; o.textContent = m; monthSel.appendChild(o); });
+  let period = '';
+
+  function baseJ(){ return jParse(reportDate.value) || todayJ; }
+  function fillPeriodDefaults(){
+    const b = baseJ();
+    if(period === 'daily' && !dayDate.value) dayDate.value = jFormat(b);
+    if(period === 'weekly' && !weekFrom.value){
+      const s = weekStart(b);
+      weekFrom.value = jFormat(s); weekTo.value = jFormat(jAddDays(s, 6));
+    }
+    if(period === 'monthly' && !monthSel.value){ monthSel.value = b[1]; yearInput.value = b[0]; }
+    updateDayNames();
+  }
+  function setPeriod(p, fromUser){
+    period = p || '';
+    $$('.period-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.period === period)));
+    $$('.period-pane').forEach(pane => pane.classList.toggle('active', pane.dataset.pane === (period || 'none')));
+    $('#periodPrint').textContent = period ? PERIOD_LABEL[period] : '(روزانه / هفتگی / ماهانه)';
+    const futureLabel = { daily:'کارهای روز آینده', weekly:'کارهای هفته آینده', monthly:'کارهای ماه آینده' }[period];
+    $('#futureTasksTitle').textContent = futureLabel || 'کارهای روز آینده، هفته آینده یا ماه آینده';
+    if(fromUser) fillPeriodDefaults();
+    // Put the matching "در این روز / هفته / ماه" opener first for حجم کار
+    const vb = $('#volumeBox');
+    const vOps = ['در این روز، ', 'در طول هفته جاری، ', 'در طول ماه جاری، '];
+    const first = { daily:0, weekly:1, monthly:2 }[period];
+    if(first != null) vb.dataset.openers = vOps.slice(first).concat(vOps.slice(0, first)).join('|');
+    updateDayNames();
+    if(fromUser) scheduleSave();
+  }
+  $$('.period-switch button').forEach(b => b.onclick = () => setPeriod(period === b.dataset.period ? '' : b.dataset.period, true));
+
+  function updateDayNames(){
+    const show = (input, span) => { const j = jParse(input.value); span.textContent = j ? weekdayName(j) : ''; };
+    show(dayDate, $('#dayName'));
+    show(weekFrom, $('#weekFromName'));
+    show(weekTo, $('#weekToName'));
+    $('#signDate').textContent = reportDate.value;
+  }
+  reportDate.addEventListener('input', () => {
+    // Follow the report date for whichever period fields are still empty
+    fillPeriodDefaults(); scheduleSave();
+  });
+  weekFrom.addEventListener('input', () => {
+    const j = jParse(weekFrom.value);
+    if(j) weekTo.value = jFormat(jAddDays(j, 6));
+    updateDayNames(); scheduleSave();
+  });
+  [dayDate, weekTo].forEach(f => f.addEventListener('input', () => { updateDayNames(); scheduleSave(); }));
+  monthSel.addEventListener('change', scheduleSave);
+  yearInput.addEventListener('input', () => {
+    yearInput.value = toEnDigits(yearInput.value).replace(/\D/g, '').slice(0, 4);
+    scheduleSave();
+  });
+
+  // Reporter name mirrors into the signature block
+  const reporterName = $('#reporterName');
+  function mirrorName(){ $('#signName').textContent = clean(getText(reporterName)); }
+  reporterName.addEventListener('input', mirrorName);
+
+  // =====================================================================
+  //  Draft autosave (per browser)
+  // =====================================================================
+  let dirty = false, saving = false, changeSerial = 0;
+  function markDirty(){
+    if(!portal) return;
+    dirty = true; changeSerial++;
+    $('#portalSaveStatus').textContent = 'تغییرات ذخیره نشده';
+    window.parent.postMessage({type:'work-report-dirty', id:portal.id, dirty:true}, window.location.origin);
+  }
+  function lockIdentity(){
+    if(!portal) return;
+    ['fileNo','reporter','username'].forEach(key => {
+      const el = $('[data-key="'+key+'"]'); el.contentEditable='false'; el.setAttribute('aria-readonly','true');
+    });
+    [reportDate,dayDate].forEach(el => {el.disabled=true;});
+  }
+  async function savePortal(){
+    if(!portal || saving) return false;
+    saving = true; $('#portalSaveBtn').disabled=true;
+    $('#portalSaveStatus').textContent = 'در حال ذخیره…';
+    const serial = changeSerial;
+    try{
+      const response = await fetch('/work-reports/'+portal.id+'/form', {
+        method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({revision:portal.revision, content:collect()})
+      });
+      const result = await response.json();
+      if(!response.ok) throw new Error(result.error || 'ذخیره انجام نشد. دوباره تلاش کنید.');
+      portal.revision = result.revision;
+      dirty = changeSerial !== serial;
+      $('#portalSaveStatus').textContent = dirty ? 'تغییرات تازه هنوز ذخیره نشده' : 'در سامانه ذخیره شد';
+      window.parent.postMessage({type:'work-report-saved', id:portal.id, savedAt:result.savedAt, revision:result.revision, dirty}, window.location.origin);
+      return !dirty;
+    }catch(error){
+      $('#portalSaveStatus').textContent = error instanceof SyntaxError ? 'ارتباط یا نشست ورود قطع شده؛ متن را نگه دارید و دوباره تلاش کنید.' : error.message;
+      return false;
+    }finally{saving=false; $('#portalSaveBtn').disabled=false;}
+  }
+  let saveTimer = null;
+  function scheduleSave(){ markDirty(); clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, 350); }
+  function collect(){
+    const d = { v:1, period:period || 'daily', fields:{}, lists:{}, printEmptyRows:$('#printEmptyRows').checked };
+    $$('[data-key]').forEach(el => {
+      d.fields[el.dataset.key] = el.classList.contains('ed') ? getText(el) : el.value;
+    });
+    Lists.names().forEach(n => d.lists[n] = Lists.values(n));
+    return d;
+  }
+  function saveDraft(){ safeSet(DRAFT_KEY, JSON.stringify(collect())); }
+  function applyDraft(d){
+    $('#printEmptyRows').checked = d.printEmptyRows !== false;
+    $$('[data-key]').forEach(el => {
+      let v = d.fields && d.fields[el.dataset.key];
+      if(v == null) v = el.dataset.default;   // drafts saved before the field existed
+      if(v == null) return;
+      if(el.classList.contains('ed')) el.textContent = v; else el.value = v;
+    });
+    Lists.names().forEach(n => {
+      if(d.lists && Array.isArray(d.lists[n])) Lists.set(n, d.lists[n]); else Lists.reset(n);
+    });
+    setPeriod(d.period || '', false);
+  }
+  function newForm(){
+    $$('[data-key]').forEach(el => {
+      const v = el.dataset.default || '';
+      if(el.classList.contains('ed')) el.textContent = v; else el.value = v;
+    });
+    Lists.names().forEach(Lists.reset);
+    setPeriod('daily', false);
+    mirrorName(); updateDayNames(); saveDraft();
+  }
+
+  $('#newFormBtn').onclick = () => {
+    if(!confirm('فرم فعلی پاک شود و یک فرم خالی شروع شود؟')) return;
+    if(portal){ applyDraft(portal.defaults); mirrorName(); updateDayNames(); lockIdentity(); scheduleSave(); } else newForm(); window.scrollTo(0, 0); toast('فرم جدید آماده است');
+  };
+  // Export: same page + current data in a JSON <script>, downloaded as .html
+  function exportHtml(){
+    const data = collect();
+    data.exportId = Date.now().toString(36);
+    data.exportedAt = new Date().toISOString();
+    const doc = PRISTINE.cloneNode(true);
+    const tag = document.createElement('script');
+    tag.type = 'application/json'; tag.id = 'embeddedData';
+    tag.textContent = JSON.stringify(data).replace(/</g, '\\u003c');
+    doc.querySelector('head').appendChild(tag);
+    const html = '<!DOCTYPE html>\n' + doc.outerHTML;
+    const who = clean(data.fields.reporter || '').replace(/[\\/:*?"<>|]+/g, '').replace(/ /g, '-');
+    const when = (data.fields.reportDate || jFormat(todayJ)).replace(/\//g, '-');
+    const name = ['گزارش-کار', who, when].filter(Boolean).join('_') + '.html';
+    const url = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('فایل ' + name + ' ذخیره شد');
+  }
+  $('#exportBtn').onclick = exportHtml;
+
+  // Print: hide ghosts/chips, optionally drop empty rows
+  window.addEventListener('beforeprint', () => {
+    closePopover(); hideChips();
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    if(!$('#printEmptyRows').checked){
+      $$('tbody[data-list]').forEach(tb => {
+        const rows = $$('tr', tb);
+        const empty = rows.filter(tr => Lists.isEmpty(tr));
+        if(empty.length < rows.length) empty.forEach(tr => tr.classList.add('print-hide'));
+      });
+    }
+  });
+  window.addEventListener('afterprint', () => $$('tr.print-hide').forEach(tr => tr.classList.remove('print-hide')));
+  window.addEventListener('resize', () => { if(current && document.activeElement === current.el) refresh(current.el); });
+  window.addEventListener('pagehide', saveDraft);
+
+  // ---------- Init ----------
+  $$('.ed').forEach(bindEditable);
+  let draft = null;
+  try{ draft = JSON.parse(safeGet(DRAFT_KEY) || 'null'); }catch(e){ draft = null; }
+  if(!draft && embedded) draft = embedded;
+  if(draft && draft.v === 1) applyDraft(draft); else newForm();
+  mirrorName(); updateDayNames();
+  if(portal){
+    lockIdentity();
+    $('#portalSaveBtn').hidden=false; $('#portalSaveBtn').onclick=savePortal;
+    $('#portalSaveStatus').textContent=portal.revision ? 'نسخهٔ ذخیره‌شده' : 'پیش‌نویس امروز؛ هنوز ذخیره نشده';
+    $('.print-btn').onclick=async () => { if(await savePortal()) window.print(); };
+    document.addEventListener('input',markDirty);
+    $('#printEmptyRows').addEventListener('change',markDirty);
+    window.addEventListener('beforeunload',event => {if(dirty){event.preventDefault(); event.returnValue='';}});
+    window.addEventListener('message',event => {
+      if(event.origin!==window.location.origin || event.source!==window.parent) return;
+      if(event.data?.type==='work-report-save') savePortal();
+    });
+    window.parent.postMessage({type:'work-report-ready',id:portal.id},window.location.origin);
+  }
+})();
+</script></body></html>

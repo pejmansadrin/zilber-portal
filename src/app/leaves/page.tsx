@@ -4,7 +4,7 @@ import { MobileBack } from '@/components/navigation/MobileBack';
 import { getSessionUser } from '@/actions/attendance';
 import { createClient } from '@/lib/supabase/server';
 import { DashboardActions } from '@/components/attendance/DashboardActions';
-import { Calendar, Briefcase, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Briefcase, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toPersianDate, fromPersianDate } from "@/lib/persian-date";
 import { rows, digits, displayTime, work, format } from "./timesheet-data";
-import { modeLabel, workBalance, type WorkDay, type WorkMode } from "./work-sessions";
+import { modeLabel, workBalance, type WorkDay, type WorkMode } from "@/domain/attendance/work-sessions";
 import s from "./AttendanceWorkspace.module.css";
 import { capsuleRadius } from "./capsule-radius";
 

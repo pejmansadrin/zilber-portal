@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     ] }];
   },
   outputFileTracingIncludes: {
+    "/work-reports/*": ["./src/templates/work-report-v1.html"],
     "/*": ["./node_modules/sharp/src/build/Release/*.node"],
   },
   compiler: { styledComponents: true },

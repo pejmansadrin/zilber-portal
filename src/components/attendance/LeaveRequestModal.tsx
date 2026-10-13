@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { submitLeaveRequest } from '@/actions/attendance';
-import { Calendar, Clock, FileText, X, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Calendar, X, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface LeaveRequestModalProps {
   isOpen: boolean;

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Clock3, X } from "lucide-react";
-import { modeLabel, type WorkMode } from "./work-sessions";
+import { modeLabel, type WorkMode } from "@/domain/attendance/work-sessions";
 import s from "./TimePicker.module.css";
 
 type Pending = { date: string; at: string; future: boolean; warning: boolean; action: "start" | "end"; mode: WorkMode };

@@ -2,6 +2,8 @@
 
 import { Select } from "@/components/ui/Select";
 import {
+  Suspense,
+  use,
   startTransition,
   useActionState,
   useEffect,
@@ -9,6 +11,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { PortalSkeleton } from "./PortalSkeleton";
 import {
   UserRound,
   ContactRound,
@@ -581,6 +584,17 @@ function Security({ email, onDirty }: { email: string; onDirty: Dirty }) {
     </section>
   );
 }
+function AccountCollections({ records, group, onDirty }: {
+  records: Promise<Record<string, EmployeeRecord[]>>;
+  group: string;
+  onDirty: Dirty;
+}) {
+  const resolved = use(records);
+  return collections.filter(collection => collection.group === group).map(config => (
+    <CollectionPanel key={config.id} config={config} records={resolved[config.id] || []} onDirty={onDirty} />
+  ));
+}
+
 export function AccountWorkspace({
   employee,
   records,
@@ -589,7 +603,7 @@ export function AccountWorkspace({
   initialSection,
 }: {
   employee: Employee;
-  records: Record<string, EmployeeRecord[]>;
+  records: Promise<Record<string, EmployeeRecord[]>>;
   avatar: string | null;
   email: string;
   initialSection: string;
@@ -1019,16 +1033,9 @@ export function AccountWorkspace({
             />
           </section>
         )}
-        {collections
-          .filter((c) => c.group === active)
-          .map((config) => (
-            <CollectionPanel
-              key={config.id}
-              config={config}
-              records={records[config.id] || []}
-              onDirty={onDirty}
-            />
-          ))}
+        {collections.some(collection => collection.group === active) && <Suspense key={active} fallback={<PortalSkeleton />}>
+          <AccountCollections records={records} group={active} onDirty={onDirty} />
+        </Suspense>}
         {active === "security" && <Security email={email} onDirty={onDirty} />}
       </div>
     </div>

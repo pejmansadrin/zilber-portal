@@ -1,0 +1,24 @@
+.workspace { display:grid; gap:18px; min-width:0; }
+.heading { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.heading h1 { display:flex; align-items:center; gap:10px; margin:0 0 8px; font-size:1.5rem; }
+.heading p { margin:0; opacity:.7; font-size:.9rem; }
+.workspace button { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border:1px solid #8c9eb64d; border-radius:12px; background:var(--card-bg, #ffffff12); color:inherit; font:inherit; cursor:pointer; }
+.workspace button:disabled { opacity:.5; cursor:wait; }
+.workspace button:focus-visible, .workspace a:focus-visible { outline:2px solid #588bc8; outline-offset:3px; }
+.history { padding:16px; border:1px solid #8c9eb633; border-radius:18px; background:#8c9eb60a; min-width:0; }
+.historyTitle { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.historyTitle h2 { font-size:1rem; margin:0; }
+.historyTitle span { font-size:.78rem; opacity:.65; }
+.reports { display:flex; gap:8px; overflow-x:auto; padding:3px; }
+.reports button { flex:0 0 auto; flex-direction:column; gap:4px; }
+.reports button[aria-pressed=true] { border-color:#588bc8; background:#588bc81c; }
+.reports small { font-size:.72rem; opacity:.75; }
+.reports strong { direction:ltr; font-size:.88rem; }
+.pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; font-size:.8rem; }
+.editor { min-width:0; overflow:hidden; border-radius:16px; border:1px solid #8c9eb644; }
+.editorHeading { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; font-size:.8rem; }
+.editorHeading a { color:inherit; }
+.frame { display:block; border:0; width:100%; height:1100px; background:#e7e9ee; }
+.loading { padding:10px 16px; font-size:.85rem; }
+.error { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px; border:1px solid #e59090; border-radius:12px; color:#c34a4a; }
+@media(max-width:650px) { .heading h1 { font-size:1.25rem; } .heading p { font-size:.8rem; } .history { padding:12px; } .frame { height:1250px; } .editorHeading { font-size:.72rem; } }

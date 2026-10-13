@@ -7,7 +7,7 @@ import { Check, Search, X } from "lucide-react";
 import { Avatar } from "./PortalShell";
 import { matchesDirectorySearch } from "@/lib/directory-search";
 import s from "./Portal.module.css";
-import p from "@/app/people/People.module.css";
+import p from "@/app/(portal)/people/People.module.css";
 
 export type DirectoryEntry = {
   id: string; full_name: string; email: string | null; employee_number: string | null;

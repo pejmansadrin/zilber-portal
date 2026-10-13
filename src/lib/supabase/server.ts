@@ -1,9 +1,11 @@
+import 'server-only';
+import { cache } from 'react';
 import { getCloudConfig } from './config';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/database.types';
 
-export async function createClient() {
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
   const config = getCloudConfig();
   if (!config) throw new Error('Cloud Supabase configuration is missing.');
@@ -29,29 +31,4 @@ export async function createClient() {
       },
     }
   );
-}
-
-export async function createAdminClient() {
-  const cookieStore = await cookies();
-  const config = getCloudConfig();
-  if (!config) throw new Error('Cloud Supabase configuration is missing.');
-
-  return createServerClient<Database>(
-    config.url,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || config.key,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
-      },
-    }
-  );
-}
+});

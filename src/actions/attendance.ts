@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { AttendanceLog, AttendanceStatus, LeaveRequest, MissionRequest, AttendanceAdjustment } from '@/types/attendance';
+import { AttendanceLog, AttendanceStatus } from '@/types/attendance';
 import { profilePhotoHref } from '@/lib/profile-photo';
 
 export async function getSessionUser() {

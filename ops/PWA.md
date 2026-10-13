@@ -2,8 +2,9 @@
 
 The production app at https://portal.zilber.tech uses the App Router manifest,
 brand icons, standalone display mode, navy theme/status-bar color and a short
-theme-aware logo splash on a fresh standalone launch. Client-side navigation does not replay
-the splash. Zoom remains enabled; safe-area insets protect controls on phones.
+theme-aware logo splash on a fresh standalone launch. It disappears after hydration
+with an independent 800 ms CSS deadline, and never waits for public-asset warming.
+Client-side navigation does not replay the splash. Zoom remains enabled; safe-area insets protect controls on phones.
 
 Mobile browser tabs display an installation gate before first paint. Chromium
 offers its native installation prompt when available; iPhone/iPad show Safari
@@ -12,7 +13,7 @@ icon. Accepting a prompt does not unlock the browser tab. Desktop browsers,
 including narrow desktop windows, continue normally. The gate is a UX rule;
 session authorization and database RLS remain responsible for access control.
 
-`public/sw.js` caches only the public offline document and brand icon. Account
+`public/sw.js` caches allowlisted public build assets, the offline document and brand icons. Account
 pages, photos, files, authentication, API responses, RSC and mutations are never
 stored in its cache. Offline document navigations show a connection message.
 Updates do not forcibly reload an open form. The manifest, worker and offline

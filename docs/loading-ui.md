@@ -28,10 +28,12 @@ The nine cells retain the supplied colors, staggered delays and 1.5s ripple. Inl
 
 `styled-components` v6 is registered for streaming SSR through `src/lib/styled-components-registry.tsx`, the root layout and `compiler.styledComponents`. The registry follows the installed Next.js CSS-in-JS guide and [styled-components guidance](https://styled-components.com/docs/advanced#nextjs).
 
-Page fallbacks are scoped to `/dashboard` and `/account`, and disappear automatically when Next.js finishes loading the route. Login and account buttons use their existing pending state, without artificial waiting or changes to request handlers.
+The shared `(portal)` route group uses a content-only `PortalSkeleton` fallback for dashboard, account, attendance and management pages. Its authenticated layout has a separate Suspense boundary with a neutral shell for the initial request. Navigation keeps the header mounted and interactive; skeletons never cover the screen with a blocking overlay. Account collections suspend independently of the overview and tabs. Login and account buttons retain their existing pending state.
 
 ## Checking the UI
 
 Navigate between dashboard/account with browser network throttling, then submit a form to see the compact version. Check both themes and reduced-motion mode. Do not run destructive profile or password changes solely to test the animation.
+
+Run `node ops/qa/navigation-streaming.mjs` to check that shell output precedes delayed account/record results, and that background downloads wait for load/idle and skip slow or data-saving connections. This is an isolated streaming test, not a production latency benchmark.
 
 Validation completed: targeted ESLint, TypeScript, `git diff --check`, and `npm run build -- --webpack` passed. A local server-render smoke check verified nine cells, original colors/delays, the 162/84/18px variants, status semantics, inline button markup and reduced-motion CSS. The browser connection was unavailable, so animated appearance and interactive layout have not been visually verified.

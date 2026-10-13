@@ -1,0 +1,9 @@
+.skeleton { display: grid; gap: 20px; padding-block: 20px; width: 100%; }
+.label { font-size: 13px; color: var(--foreground); opacity: .65; }
+.heading, .line, .shortLine { border-radius: 8px; background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+.heading { height: 28px; width: min(55%, 240px); }
+.card { display: grid; align-content: start; gap: 18px; min-height: 150px; padding: 24px; border: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent); border-radius: 20px; }
+.line { height: 16px; width: 85%; }
+.shortLine { height: 16px; width: 55%; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 540px) { .grid { grid-template-columns: 1fr; } .card { padding: 20px; } }

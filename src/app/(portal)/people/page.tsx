@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getAccount } from "@/lib/account/data";
 import { createClient } from "@/lib/supabase/server";
-import { PortalShell } from "@/components/portal/PortalShell";
 import { PeopleDirectory } from "@/components/portal/PeopleDirectory";
 import { matchesDirectorySearch } from "@/lib/directory-search";
 import { profilePhotoHref } from "@/lib/profile-photo";
@@ -17,7 +16,7 @@ export const metadata = { title: "مدیریت کاربران و پرونده‌
 export default async function PeoplePage({ searchParams }: {
   searchParams: Promise<{ employee?: string; q?: string }>;
 }) {
-  const { user, employee, avatar, accessRole: role } = await getAccount();
+  const { accessRole: role } = await getAccount();
   const client = await createClient();
   const permitted = role === "super_admin";
   const { data, error } = permitted
@@ -44,8 +43,7 @@ export default async function PeoplePage({ searchParams }: {
       return [collection.id, records || []] as const;
     })) : [];
 
-  return <PortalShell gender={employee?.gender} accessRole={role} name={employee?.full_name || user.email || "زیلبر"} avatar={avatar}
-    role={role === "super_admin" ? "مدیریت" : role === "hr_admin" ? "ادمین منابع انسانی" : role === "manager" ? "سرپرست" : "همکار زیلبر"}>
+  return <>
     <div className={`${s.pageTitle} ${p.pageTitle}`}>
       <div><h1 className={s.heading}>{role === "super_admin" ? "پنل مدیریت" : "مدیریت پرونده‌ها"}</h1>
         <p className={s.muted}>مدیریت کاربران، اطلاعات شخصی و پرونده‌های همکاری</p>
@@ -71,5 +69,5 @@ export default async function PeoplePage({ searchParams }: {
           <p className={s.muted}>{params.employee ? "پرونده پیدا نشد یا در دسترس شما نیست." : "برای مشاهده و تنظیم اطلاعات، یک پرونده را انتخاب کنید."}</p>}
         </div>
       </div>}
-  </PortalShell>;
+  </>;
 }

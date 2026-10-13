@@ -1,12 +1,13 @@
 {
   "name": "zilber-portal",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:architecture": "node ops/qa/architecture.mjs && node ops/qa/navigation-streaming.mjs",
     "db:start": "node ops/supabase/local.mjs start",
     "db:stop": "node ops/supabase/local.mjs stop",
     "db:status": "node ops/supabase/local.mjs status",

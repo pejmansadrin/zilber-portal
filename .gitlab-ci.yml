@@ -26,8 +26,12 @@ build:
   script:
     - NODE_OPTIONS=--max-old-space-size=768 npm ci --maxsockets=4 --prefer-offline --no-audit --no-fund
     - npm explore sharp -- npm run build
+    - npm run lint
+    - node ops/qa/architecture.mjs
+    - node ops/qa/work-reports.mjs
     - node ops/qa/profile-photo.mjs
     - node ops/qa/pwa.mjs
+    - node ops/qa/navigation-streaming.mjs
     - node ops/qa/directory-search.mjs
     - python3 ops/qa/deploy-health.py
     - npm run build

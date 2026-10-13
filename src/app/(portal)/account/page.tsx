@@ -1,6 +1,5 @@
 import { ShieldCheck } from "lucide-react";
 import { getAccount, getAccountRecords } from "@/lib/account/data";
-import { PortalShell } from "@/components/portal/PortalShell";
 import { AccountWorkspace } from "@/components/portal/AccountWorkspace";
 import s from "@/components/portal/Portal.module.css";
 export const dynamic = "force-dynamic";
@@ -10,20 +9,11 @@ export default async function AccountPage({
 }: {
   searchParams: Promise<{ section?: string }>;
 }) {
-  const { user, employee, avatar, accessRole } = await getAccount();
+  const { user, employee, avatar } = await getAccount();
   const { section } = await searchParams;
-  const name =
-    employee?.full_name ||
-    String(user.user_metadata.full_name || "همکار زیلبر");
-  const records = employee ? await getAccountRecords(employee.id) : {};
+  const records = employee ? getAccountRecords(employee.id) : Promise.resolve({});
   return (
-    <PortalShell gender={employee?.gender} accessRole={accessRole}
-      name={name}
-      avatar={avatar}
-      email={user.email}
-      role={[employee?.job_title, employee?.department].filter(Boolean).join(" · ")}
-      variant="dashboard"
-    >
+    <>
       {!employee && <div className={s.pageTitle} id="account-workspace">
         <div>
           <p className={s.eyebrow}>فضای شخصی شما</p>
@@ -51,6 +41,6 @@ export default async function AccountPage({
           </p>
         </section>
       )}
-    </PortalShell>
+    </>
   );
 }

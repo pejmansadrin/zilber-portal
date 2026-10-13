@@ -5,7 +5,7 @@ import { toPersianDate } from '@/lib/persian-date';
 import { useState } from 'react';
 import s from './AttendanceWorkspace.module.css';
 import { format } from './timesheet-data';
-import { sessionMinutes, type WorkDay } from './work-sessions';
+import { sessionMinutes, type WorkDay } from '@/domain/attendance/work-sessions';
 import { AttendanceGantt } from './AttendanceGantt';
 const time = (stamp: string) => new Date(stamp).toLocaleTimeString('fa-IR', { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit' });
 export function TimesheetPreview({ name, currentTime, todayEntry, workDays }: { name: string; currentTime: string; todayEntry: WorkDay | null; workDays: WorkDay[] }) {

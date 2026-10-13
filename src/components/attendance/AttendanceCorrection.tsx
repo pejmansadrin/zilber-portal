@@ -1,18 +1,25 @@
 'use client';
 
-import { useState, useTransition, type FormEvent } from 'react';
-import { ChevronDown, FilePlus2 } from 'lucide-react';
+import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from 'react';
+import { FilePlus2, X } from 'lucide-react';
 import { requestWork, requestWorkInterval } from '@/actions/attendance-review';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { Select } from '@/components/ui/Select';
 import { TimePicker } from './TimePicker';
-import { modeLabel, type WorkDay, type WorkMode } from './work-sessions';
+import { AttendanceRequests } from './AttendanceRequests';
+import type { TimeRequest } from '@/types/attendance-review';
+import { modeLabel, type WorkDay, type WorkMode } from '@/domain/attendance/work-sessions';
 import s from './AttendanceWorkspace.module.css';
+import modal from './TimePicker.module.css';
 
 const clock = (stamp: string, locale = 'fa-IR') => new Date(stamp).toLocaleTimeString(locale, { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
 const nextDate = (date: string) => new Date(Date.parse(date + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
 const stamp = (date: string, value: string) => new Date(`${date}T${value}:00+03:30`);
-export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: string }) {
+export function AttendanceCorrection({ days, now, requests }: { days: WorkDay[]; now: string; requests: TimeRequest[] }) {
+  const [formOpen, setFormOpen] = useState(false);
+  const formId = useId();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   const today = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
   const [date, setDate] = useState(today);
   const [kind, setKind] = useState<'register' | 'correct' | 'mission' | 'late'>('register');
@@ -26,6 +33,38 @@ export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: stri
   const [reason, setReason] = useState('');
   const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, startTransition] = useTransition();
+  function close() {
+    if (busy) return;
+    dialog.current?.close();
+    setFormOpen(false);
+    trigger.current?.focus({ preventScroll: true });
+  }
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element || !formOpen) return;
+    const viewport = window.visualViewport;
+    function fitViewport() {
+      if (!element) return;
+      element.style.setProperty('--picker-vh', `${viewport?.height ?? window.innerHeight}px`);
+      element.style.setProperty('--picker-vw', `${viewport?.width ?? document.documentElement.clientWidth}px`);
+      element.style.setProperty('--picker-top', `${viewport?.offsetTop ?? 0}px`);
+      element.style.setProperty('--picker-left', `${viewport?.offsetLeft ?? 0}px`);
+    }
+    fitViewport();
+    if (!element.open) element.showModal();
+    const previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    viewport?.addEventListener('resize', fitViewport);
+    viewport?.addEventListener('scroll', fitViewport);
+    window.addEventListener('resize', fitViewport);
+    return () => {
+      viewport?.removeEventListener('resize', fitViewport);
+      viewport?.removeEventListener('scroll', fitViewport);
+      window.removeEventListener('resize', fitViewport);
+      document.documentElement.style.overflow = previousOverflow;
+      if (element.open) element.close();
+    };
+  }, [formOpen]);
   const day = days.find(day => day.date === date);
   const session = target === '' ? null : day?.sessions[Number(target)];
   const workSessions = day?.sessions.map((session, index) => ({ session, index })).filter(({ session }) => session.mode !== 'mission') ?? [];
@@ -74,10 +113,19 @@ export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: stri
   }
   const missingWork = kind === 'mission' && !workSessions.length;
   return <section className={`${s.card} ${s.correctionCard}`} aria-label="درخواست ثبت یا اصلاح تردد">
-    <details className={s.correctionDisclosure}>
-      <summary><FilePlus2 size={20} aria-hidden="true" /><span><strong>درخواست ثبت یا اصلاح تردد</strong><small>ثبت ورود و خروج، اصلاح ساعت یا ثبت مأموریت</small></span><ChevronDown size={18} aria-hidden="true" /></summary>
-      <form className={s.correctionForm} onSubmit={submit}>
-        <p className={s.registrationHint}>ساعت‌های این بخش فقط پس از تأیید مدیریت اعمال می‌شوند.</p>
+    <button ref={trigger} type="button" className={s.correctionButton} aria-haspopup="dialog" aria-expanded={formOpen} aria-controls={`${formId}-dialog`} onClick={() => { setFeedback(null); setFormOpen(true); }}>
+      <FilePlus2 size={20} aria-hidden="true" /><span>ثبت یا اصلاح تردد</span>
+    </button>
+    <dialog ref={dialog} id={`${formId}-dialog`} className={`${modal.panel} ${s.correctionModal}`} dir="rtl" aria-labelledby={`${formId}-title`} aria-describedby={`${formId}-hint`}
+      onCancel={event => { event.preventDefault(); close(); }} onClose={() => { if (!dialog.current?.open) setFormOpen(false); }}>
+      <header className={modal.dialogHeader}>
+        <span className={modal.dialogIcon} aria-hidden="true"><FilePlus2 size={20} /></span>
+        <div><h2 id={`${formId}-title`}>ثبت یا اصلاح تردد</h2><p>درخواست ثبت، اصلاح ساعت یا مأموریت</p></div>
+        <button type="button" className={modal.close} disabled={busy} aria-label="بستن فرم ثبت یا اصلاح تردد" onClick={close}><X size={19} /></button>
+      </header>
+      <form id={formId} className={s.correctionModalForm} onSubmit={submit}>
+      <div className={s.correctionForm}>
+        <p id={`${formId}-hint`} className={s.registrationHint}>درخواست را برای مدیریت بفرستید؛ ساعت‌ها پس از تأیید در کارکرد ثبت می‌شوند. پاسخ را در تاریخچه مکاتبات ببینید.</p>
         <JalaliDatePicker value={date} max={today} disabled={busy} onChange={date => { setDate(date); setTarget(''); setNextDay(false); setEndNextDay(false); setFeedback(null); }} />
         <label>درخواست موردنظر<Select aria-label="درخواست موردنظر" value={kind} disabled={busy} onChange={event => selectKind(event.target.value as typeof kind)}><option value="register">ثبت ورود و خروج جاافتاده</option><option value="correct">اصلاح ساعت ورود یا خروج</option><option value="mission" disabled={!workSessions.length}>ثبت مأموریت</option><option value="late">فقط توضیح تأخیر</option></Select></label>
         {!workSessions.length && <p className={s.registrationHint}>ثبت مأموریت پس از ثبت ساعت کاری این روز فعال می‌شود.</p>}
@@ -91,9 +139,11 @@ export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: stri
           {kind === 'mission' && <p className={s.registrationHint}>شروع و پایان مأموریت باید داخل بازهٔ کاری انتخاب‌شده باشند؛ مدت کار اصلی دوباره محاسبه نمی‌شود.</p>}
         </>}
         <label>دلیل درخواست<textarea value={reason} disabled={busy} onChange={event => setReason(event.target.value)} minLength={5} maxLength={2000} rows={3} required placeholder="دلیل ثبت یا اصلاح ساعت را بنویسید." /></label>
-        <button type="submit" className={s.entryAction} disabled={busy || missingWork}>ارسال درخواست ثبت</button>
         {feedback && <p role={feedback.ok ? 'status' : 'alert'} className={feedback.ok ? s.registrationFeedback : s.entryError}>{feedback.message}</p>}
+      </div>
+      <footer className={modal.dialogFooter}><button type="submit" className={modal.done} disabled={busy || missingWork}>{busy ? 'در حال ارسال…' : 'ارسال درخواست به مدیریت'}</button></footer>
       </form>
-    </details>
+    </dialog>
+    <AttendanceRequests requests={requests} />
   </section>;
 }

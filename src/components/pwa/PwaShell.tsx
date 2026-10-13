@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Download, Share, MoreVertical, Smartphone, PlusSquare } from "lucide-react";
 import s from "./PwaShell.module.css";
 import { warmAppAssets } from "@/lib/app-preload";
+import { canWarmAssets, scheduleBackgroundWork } from "@/lib/background-work";
 
 interface InstallPrompt extends Event {
   prompt(): Promise<void>;
@@ -27,82 +28,44 @@ function subscribe(callback: () => void) {
 }
 const getPrompt = () => window.__portalInstallPrompt;
 const serverPrompt = () => undefined;
-function subscribeMode(callback: () => void) {
-  const queries = ["standalone", "fullscreen"].map(mode => window.matchMedia(`(display-mode: ${mode})`));
-  queries.forEach(query => query.addEventListener("change", callback));
-  window.addEventListener("pageshow", callback);
-  return () => {
-    queries.forEach(query => query.removeEventListener("change", callback));
-    window.removeEventListener("pageshow", callback);
-  };
-}
-const getMode = () => document.documentElement.dataset.pwaMode ?? "desktop";
-const serverMode = () => "desktop";
 
 export default function PwaShell({ children }: { children: React.ReactNode }) {
   const prompt = useSyncExternalStore(subscribe, getPrompt, serverPrompt);
-  const mode = useSyncExternalStore(subscribeMode, getMode, serverMode);
   const [installing, setInstalling] = useState(false);
   const [message, setMessage] = useState("");
   const [launching, setLaunching] = useState(true);
-  const [preparation, setPreparation] = useState<number | null>(null);
-  const [assetsReady] = useState(() => {
-    let resolve!: () => void;
-    const promise = new Promise<void>(done => { resolve = done; });
-    return { promise, resolve };
-  });
 
   useEffect(() => {
-    if (mode !== "standalone") return;
-    const started = performance.now();
-    let timer: ReturnType<typeof setTimeout>;
-    let pageTimer: ReturnType<typeof setTimeout>;
-    let disposed = false;
-    const pageReady = document.readyState === "complete" ? Promise.resolve() :
-      new Promise<void>(resolve => window.addEventListener("load", () => resolve(), { once: true }));
-    const logo = document.getElementById("pwa-launch-logo") as HTMLImageElement | null;
-    // A broken network/font must never leave the app behind the splash screen.
-    void Promise.race([
-      Promise.all([
-        Promise.race([
-          Promise.all([pageReady, document.fonts.ready, logo?.decode().catch(() => {})]),
-          new Promise(resolve => { pageTimer = setTimeout(resolve, 1800); }),
-        ]),
-        assetsReady.promise,
-      ]),
-      new Promise(resolve => { timer = setTimeout(resolve, 15000); }),
-    ]).then(() => {
-      clearTimeout(timer);
-      clearTimeout(pageTimer);
-      if (!disposed) timer = setTimeout(() => setLaunching(false), Math.max(0, 650 - (performance.now() - started)));
-    });
-    return () => { disposed = true; clearTimeout(timer); clearTimeout(pageTimer); };
-  }, [mode, assetsReady]);
+    const frame = requestAnimationFrame(() => setLaunching(false));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || !window.isSecureContext || process.env.NODE_ENV !== "production") { assetsReady.resolve(); return; }
+    if (!("serviceWorker" in navigator) || !window.isSecureContext || process.env.NODE_ENV !== "production") return;
     let disposed = false;
     let registration: ServiceWorkerRegistration | undefined;
     let lastWarm = 0;
     const channels = new Set<() => void>();
     const workers = new Map<ServiceWorker, () => void>();
+    let cancelWarm = () => {};
     const warm = () => {
-      if (disposed || !registration || !navigator.onLine || document.hidden || Date.now() - lastWarm < 30000) return;
+      if (disposed || !registration || !canWarmAssets() || Date.now() - lastWarm < 30000) return;
       lastWarm = Date.now();
       channels.forEach(close => close());
       channels.clear();
-      channels.add(warmAppAssets(registration, percent => { if (!disposed) setPreparation(percent); }, assetsReady.resolve));
+      channels.add(warmAppAssets(registration, () => {}));
     };
+    const queueWarm = () => { cancelWarm(); cancelWarm = scheduleBackgroundWork(warm); };
     const update = () => {
-      if (!document.hidden) { void registration?.update().catch(() => {}); warm(); }
+      if (!document.hidden) { void registration?.update().catch(() => {}); queueWarm(); }
     };
-    const online = () => { lastWarm = 0; warm(); };
-    const controller = () => { lastWarm = 0; warm(); };
+    const online = () => { lastWarm = 0; queueWarm(); };
+    const controller = () => { lastWarm = 0; queueWarm(); };
     const watchUpdate = () => {
       const worker = registration?.installing;
       if (!worker || workers.has(worker)) return;
       const changed = () => {
-        if (worker.state === "installed") { lastWarm = 0; warm(); }
+        if (worker.state === "installed") { lastWarm = 0; queueWarm(); }
       };
       workers.set(worker, changed);
       worker.addEventListener("statechange", changed);
@@ -114,14 +77,15 @@ export default function PwaShell({ children }: { children: React.ReactNode }) {
         registration.addEventListener("updatefound", watchUpdate);
         watchUpdate();
         await navigator.serviceWorker.ready;
-        warm();
+        if (!disposed) queueWarm();
       })
-      .catch(() => { assetsReady.resolve(); if (!disposed) setMessage("آماده‌سازی اپ انجام نشد. اتصال اینترنت را بررسی کنید و صفحه را دوباره باز کنید."); });
+      .catch(() => {});
     document.addEventListener("visibilitychange", update);
     window.addEventListener("online", online);
     navigator.serviceWorker.addEventListener("controllerchange", controller);
     return () => {
       disposed = true;
+      cancelWarm();
       channels.forEach(close => close());
       workers.forEach((changed, worker) => worker.removeEventListener("statechange", changed));
       registration?.removeEventListener("updatefound", watchUpdate);
@@ -129,7 +93,7 @@ export default function PwaShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("online", online);
       navigator.serviceWorker.removeEventListener("controllerchange", controller);
     };
-  }, [assetsReady]);
+  }, []);
 
   async function install() {
     if (!prompt || installing) return;
@@ -154,7 +118,7 @@ export default function PwaShell({ children }: { children: React.ReactNode }) {
       <Image id="pwa-launch-logo" className={s.splashLogo} src="/pwa/icon-512.png" width={104} height={104} alt="زیلبر" priority unoptimized />
       <strong>پورتال زیلبر</strong>
       <span className={s.spinner} aria-hidden="true" />
-      <span className={s.splashCaption}>در حال آماده‌سازی…{preparation !== null && ` ${preparation.toLocaleString("fa-IR")}٪`}</span>
+      <span className={s.splashCaption}>در حال باز کردن…</span>
     </div>}
     <main className={s.gate} aria-labelledby="pwa-install-title">
       <section className={s.card}>

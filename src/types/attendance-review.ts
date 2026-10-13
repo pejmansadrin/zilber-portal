@@ -1,4 +1,4 @@
-import type { WorkDay, WorkSession, WorkMode } from '@/components/attendance/work-sessions';
+import type { WorkDay, WorkSession, WorkMode } from '@/domain/attendance/work-sessions';
 export type StoredWorkDay = { user_id: string; work_date: string; sessions: WorkSession[]; revision: number; updated_at: string };
 export type TimeRequest = {
  id: string; user_id: string; work_date: string; kind: 'time' | 'late'; action: 'start' | 'end' | null;

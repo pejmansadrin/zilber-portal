@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { AppPrefetch } from "@/components/navigation/AppPrefetch";
 import { MobileBack } from "@/components/navigation/MobileBack";
 import Link from "@/components/navigation/AppLink";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutGrid, UserRound, ShieldCheck, LogOut, X, Clock3 } from "lucide-react";
+import { LayoutGrid, UserRound, ShieldCheck, LogOut, X, Clock3, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Loader from "@/components/ui/loader-4";
 import { accountSectionHref } from "@/lib/account/routes";
@@ -33,6 +32,7 @@ export function PortalShell({
   role,
   accessRole,
   gender,
+  pending = false,
 }: {
   children: React.ReactNode;
   name: string;
@@ -42,6 +42,7 @@ export function PortalShell({
   role?: string;
   accessRole?: string | null;
   gender?: string | null;
+  pending?: boolean;
 }) {
   const path = usePathname();
   const [busy, setBusy] = useState(false);
@@ -101,7 +102,6 @@ export function PortalShell({
 
   return (
     <div className={`${s.page} ${s.dashboardPage}`}>
-      <AppPrefetch superAdmin={accessRole === "super_admin"} />
       <div className={s.dashboardBackdrop} aria-hidden="true" />
       <a className={s.skip} href="#main-content">
         رفتن به محتوای اصلی
@@ -132,6 +132,7 @@ export function PortalShell({
               <button
                 type="button"
                 onClick={toggleMenu}
+                disabled={pending}
                 className={`${s.profileAvatarBtn} ${menuMounted ? s.profileAvatarBtnActive : ""}`}
                 aria-label="منوی حساب کاربری و ناوبری پورتال"
                 aria-expanded={menuMounted}
@@ -197,6 +198,13 @@ export function PortalShell({
                         {path === "/attendance" && <span className={s.cornerActiveIndicator} />}
                       </Link>
                       {accessRole === "super_admin" && (
+                        <Link href="/admin/attendance" onClick={closeMenu} role="menuitem" aria-current={path === "/admin/attendance" ? "page" : undefined} className={`${s.cornerNavItem} ${path === "/admin/attendance" ? s.cornerNavItemActive : ""}`}>
+                          <span className={s.cornerNavIcon}><Clock3 size={15} aria-hidden="true" /></span>
+                          <div className={s.cornerNavMeta}><span className={s.cornerNavTitle}>مدیریت حضور و غیاب</span><span className={s.cornerNavSub}>نمای بصری تردد همکاران و بررسی درخواست‌ها</span></div>
+                          {path === "/admin/attendance" && <span className={s.cornerActiveIndicator} />}
+                        </Link>
+                      )}
+                      {accessRole === "super_admin" && (
                         <Link
                           href="/people"
                           onClick={closeMenu}
@@ -217,7 +225,6 @@ export function PortalShell({
                       <Link
                         href="/dashboard"
                         onClick={closeMenu}
-                        prefetch={true}
                         className={`${s.cornerNavItem} ${
                           path === "/dashboard" ? s.cornerNavItemActive : ""
                         }`}
@@ -238,7 +245,6 @@ export function PortalShell({
                       <Link
                         href={accountSectionHref()}
                         onClick={closeMenu}
-                        prefetch={true}
                         className={`${s.cornerNavItem} ${
                           path.startsWith("/account") ? s.cornerNavItemActive : ""
                         }`}
@@ -254,6 +260,11 @@ export function PortalShell({
                         {path.startsWith("/account") && (
                           <span className={s.cornerActiveIndicator} />
                         )}
+                      </Link>
+                      <Link href="/work-reports" onClick={closeMenu}
+                        className={`${s.cornerNavItem} ${path.startsWith("/work-reports") ? s.cornerNavItemActive : ""}`} role="menuitem">
+                        <span className={s.cornerNavIcon}><FileText size={15} /></span>
+                        <div className={s.cornerNavMeta}><span className={s.cornerNavTitle}>گزارش کار</span><span className={s.cornerNavSub}>گزارش روزانه، ذخیره و چاپ</span></div>
                       </Link>
                     </nav>
 

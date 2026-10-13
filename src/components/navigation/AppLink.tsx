@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 import { usePageLoading } from "@/components/ui/PageLoadingOverlay";
 
-export default function AppLink({ onNavigate, prefetch = true, ...props }: ComponentProps<typeof Link>) {
+export default function AppLink({ onNavigate, prefetch = null, ...props }: ComponentProps<typeof Link>) {
   const { startLoading } = usePageLoading();
   return <Link {...props} prefetch={prefetch} onNavigate={event => {
     let cancelled = false;

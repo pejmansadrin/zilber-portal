@@ -1,8 +1,9 @@
 import 'server-only';
-import { createClient } from '@/lib/supabase/server';
+import { requireSession } from '@/lib/auth/session';
 import { storedWorkDay } from '@/types/attendance-review';
-export async function getWorkData(userId: string) {
- const client = await createClient();
+export async function getWorkData() {
+ const { client, user } = await requireSession();
+ const userId = user.id;
  async function readDays() {
   const rows = [];
   for (let offset = 0; ; offset += 1000) {

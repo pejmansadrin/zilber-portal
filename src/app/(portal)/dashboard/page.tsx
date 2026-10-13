@@ -20,7 +20,7 @@ import {
   getProfileChecklist,
   profileCompletion,
 } from "@/lib/account-fields";
-import { Avatar, PortalShell } from "@/components/portal/PortalShell";
+import { Avatar } from "@/components/portal/PortalShell";
 import s from "@/components/portal/Portal.module.css";
 import d from "./Dashboard.module.css";
 
@@ -28,6 +28,14 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "صفحهٔ اصلی | پورتال زیلبر" };
 
 const tools = [
+  {
+    href: "/work-reports",
+    title: "گزارش کار",
+    text: "تکمیل گزارش روزانه، مرور سوابق و چاپ فرم.",
+    icon: FileText,
+    label: "ثبت و مشاهدهٔ گزارش‌ها",
+    number: "۰۶",
+  },
   {
     href: "/attendance",
     title: "حضور و غیاب",
@@ -118,13 +126,7 @@ export default async function DashboardPage() {
   }).format(today);
 
   return (
-    <PortalShell gender={employee?.gender} accessRole={accessRole}
-      name={name}
-      avatar={avatar}
-      email={user.email}
-      role={[employee?.job_title, employee?.department].filter(Boolean).join(" · ")}
-      variant="dashboard"
-    >
+    <>
       <div className={d.pageHeading}>
         <div>
           <p className={d.eyebrow}>پورتال همکاران زیلبر</p>
@@ -331,6 +333,6 @@ export default async function DashboardPage() {
         </p>
         <span className={d.upcomingBadge}>در حال آماده‌سازی</span>
       </aside>
-    </PortalShell>
+    </>
   );
 }
