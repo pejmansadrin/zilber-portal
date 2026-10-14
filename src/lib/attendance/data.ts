@@ -15,7 +15,8 @@ export async function getRegistrationData(now: string) {
     client.from('portal_work_days').select(dayColumns).eq('user_id', user.id)
       .eq('work_date', date).maybeSingle(),
     client.from('portal_work_days').select(dayColumns).eq('user_id', user.id)
-      .contains('sessions', [{ end: null }]).order('work_date', { ascending: false }).limit(1).maybeSingle(),
+      // sessions is JSONB; a JS array makes contains() emit PostgreSQL array syntax.
+      .contains('sessions', JSON.stringify([{ end: null }])).order('work_date', { ascending: false }).limit(1).maybeSingle(),
     client.from('portal_time_requests').select('id,mode,requested_at').eq('user_id', user.id)
       .eq('status', 'pending').eq('kind', 'time').eq('action', 'start')
       .neq('mode', 'mission').is('session_index', null).not('requested_at', 'is', null).is('requested_until', null)

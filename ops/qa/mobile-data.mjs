@@ -21,14 +21,21 @@ function load(file, mocks = {}, loaded = new Map()) {
   return exports;
 }
 const calls = [];
-let denied = false, failHistory = false;
+let denied = false, failHistory = false, emptyRegistration = false;
 const owner = '11111111-1111-4111-8111-111111111111';
 const day = date => ({ user_id: owner, work_date: date, sessions: [{ mode: 'office', start: `${date}T08:00:00+03:30`, end: null }], revision: 1, updated_at: '2026-10-14T08:00:00Z' });
 const client = createClient('https://fixture.invalid', 'fixture-only', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async input => {
   const url = new URL(String(input)); calls.push(url);
+  if (emptyRegistration && /\/portal_(work_days|time_requests)$/.test(url.pathname)) return Response.json([]);
   if (url.pathname.endsWith('/employees')) return Response.json([{ id: 42 }]);
   if (url.pathname.endsWith('/portal_work_days')) {
-    if (url.searchParams.has('sessions')) return Response.json([day('2026-09-30')]);
+    if (url.searchParams.has('sessions')) {
+      const filter = url.searchParams.get('sessions');
+      assert.equal(filter.slice(0, 3), 'cs.');
+      // JSONB array containment must be JSON, not a PostgreSQL array of objects.
+      assert.deepEqual(JSON.parse(filter.slice(3)), [{ end: null }]);
+      return Response.json([day('2026-09-30')]);
+    }
     if (url.searchParams.get('work_date')?.startsWith('eq.')) return Response.json([day('2026-10-14')]);
     if (failHistory) return Response.json({ message: 'delayed history unavailable' }, { status: 503 });
     return Response.json([day('2026-10-12')]);
@@ -51,6 +58,11 @@ assert.equal(registration.pendingEntry.id, 'pending');
 for (const url of calls) assert.equal(url.searchParams.get('user_id'), `eq.${owner}`);
 assert(calls.every(url => !url.searchParams.get('work_date')?.startsWith('gte.')), 'Initial registration has no month query');
 assert.equal(calls.find(url => url.pathname.endsWith('/portal_time_requests')).searchParams.get('select'), 'id,mode,requested_at');
+emptyRegistration = true;
+const empty = await data.getRegistrationData('2026-10-14T10:00:00Z');
+assert.equal(empty.days.length, 0);
+assert.equal(empty.pendingEntry, null, 'No attendance/request rows must still allow the page to open');
+emptyRegistration = false;
 await assert.rejects(() => data.getMonthHistory(history));
 failHistory = false; calls.length = 0;
 await data.getMonthHistory(history);
