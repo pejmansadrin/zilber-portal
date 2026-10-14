@@ -40,10 +40,17 @@ export function fromPersianDate(value: string): string | null {
   )
     return null;
   const target = `${year}/${ms.padStart(2, "0")}/${ds.padStart(2, "0")}`;
+  // Intl remains authoritative for Persian leap years. Dates are ordered, so
+  // binary search needs at most nine conversions rather than a year-long scan.
   const start = Date.UTC(year + 621, 2, 18);
-  for (let offset = 0; offset < 370; offset++) {
+  let low = 0, high = 369;
+  while (low <= high) {
+    const offset = Math.floor((low + high) / 2);
     const iso = new Date(start + offset * 86400000).toISOString().slice(0, 10);
-    if (toPersianDate(iso) === target) return iso;
+    const candidate = toPersianDate(iso);
+    if (candidate === target) return iso;
+    if (candidate < target) low = offset + 1;
+    else high = offset - 1;
   }
   return null;
 }

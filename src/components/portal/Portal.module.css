@@ -727,12 +727,11 @@
 .sideNavBtn:hover {
   background: var(--subtle);
   color: var(--ink);
-  transform: translateX(-3px);
   border-color: var(--line);
 }
 .sideNav button:active,
 .sideNavBtn:active {
-  transform: scale(0.98) translateX(-3px);
+  transform: none;
 }
 .sideNavIcon {
   flex-shrink: 0;
@@ -740,7 +739,6 @@
 }
 .sideNav button:hover .sideNavIcon,
 .sideNavBtn:hover .sideNavIcon {
-  transform: scale(1.12);
   color: #2563eb;
 }
 :global(html.dark) .sideNav button:hover .sideNavIcon,
@@ -1561,13 +1559,12 @@
   color: var(--ink);
   opacity: 1;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .themeToggleButton:hover {
   background: var(--input);
   color: var(--ink);
   border-color: var(--accent);
-  transform: scale(1.05);
   box-shadow: 0 0 0 2px rgb(37 99 235 / 25%);
 }
 .themeToggleButton:active {
@@ -1587,11 +1584,10 @@
   border-radius: 50%;
   cursor: pointer;
   outline: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .profileAvatarBtn:hover {
-  transform: scale(1.05);
   box-shadow: 0 0 0 2px rgb(37 99 235 / 40%);
 }
 
@@ -1638,14 +1634,14 @@
   max-width: min(300px, calc(100vw - 28px));
   border-radius: 20px;
   border: 1px solid rgb(255 255 255 / 80%);
-  background: rgb(255 255 255 / 76%);
+  background: #ffffff;
   padding: 10px;
   box-shadow:
     0 20px 45px -10px rgb(15 23 42 / 18%),
     0 1px 1px 0 rgb(255 255 255 / 95%) inset,
     0 0 0 1px rgb(255 255 255 / 45%) inset;
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
-  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   direction: rtl;
   transform-origin: top left;
   opacity: 0;
@@ -1658,13 +1654,13 @@
 
 :global(html.dark) .cornerCard {
   border-color: rgb(255 255 255 / 13%);
-  background: rgb(17 27 46 / 82%);
+  background: #111b2e;
   box-shadow:
     0 25px 55px -10px rgb(0 0 0 / 70%),
     0 1px 1px 0 rgb(255 255 255 / 18%) inset,
     0 0 0 1px rgb(255 255 255 / 6%) inset;
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
-  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .cornerCard::after {

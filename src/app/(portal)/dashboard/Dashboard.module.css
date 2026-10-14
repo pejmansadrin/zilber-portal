@@ -364,27 +364,15 @@
   flex-direction: column;
   padding: 23px;
   min-height: 226px;
-  transition:
-    transform 0.2s,
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
 }
 .tool:hover {
-  transform: translateY(-4px);
   background: rgb(255 255 255 / 80%);
   border-color: rgb(255 255 255 / 95%);
-  box-shadow:
-    0 22px 50px -18px rgb(37 99 235 / 16%),
-    0 1px 1px 0 rgb(255 255 255 / 100%) inset,
-    0 0 0 1px rgb(255 255 255 / 60%) inset;
 }
 :global(html.dark) .tool:hover {
   background: rgb(22 36 62 / 80%);
   border-color: rgb(59 130 246 / 35%);
-  box-shadow:
-    0 24px 55px -18px rgb(0 0 0 / 70%),
-    0 1px 1px 0 rgb(255 255 255 / 22%) inset,
-    0 0 0 1px rgb(255 255 255 / 8%) inset;
 }
 .toolTop {
   display: flex;
@@ -427,12 +415,6 @@
   font-size: 11px;
   color: var(--accent);
   margin-top: auto;
-}
-.toolLink svg {
-  transition: transform 0.2s;
-}
-.tool:hover .toolLink svg {
-  transform: translateX(-3px);
 }
 .quickAccess {
   display: flex;

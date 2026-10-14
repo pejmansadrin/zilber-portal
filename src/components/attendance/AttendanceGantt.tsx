@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { toPersianDate, fromPersianDate } from "@/lib/persian-date";
+import { useMemo, useState } from "react";
+import { toPersianDate } from "@/lib/persian-date";
 import { rows, digits, displayTime, work, format } from "./timesheet-data";
 import { modeLabel, workBalance, type WorkDay, type WorkMode } from "@/domain/attendance/work-sessions";
 import s from "./AttendanceWorkspace.module.css";
+import { jalaliMonth } from "@/lib/jalali-calendar";
+import { tehranClock } from "@/lib/clock-format";
 import { capsuleRadius } from "./capsule-radius";
 
 const weekdayLetters: Record<string, string> = { "شنبه": "ش", "یکشنبه": "ی", "دوشنبه": "د", "سه‌شنبه": "س", "چهارشنبه": "چ", "پنجشنبه": "پ", "جمعه": "ج" };
@@ -13,32 +15,31 @@ const position = (time: string) => {
   const [hours, minutes, seconds = 0] = time.split(":").map(Number);
   return (hours * 60 + minutes + seconds / 60) / 1440 * 100;
 };
-const days = Array.from({ length: 31 }, (_, index) => {
-  const date = `1405/07/${String(index + 1).padStart(2, "0")}`;
-  const iso = fromPersianDate(date);
-  const weekday = iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("fa-IR", { weekday: "long", timeZone: "UTC" }) : "";
-  return { date, day: index + 1, weekday, row: rows.find(row => row.date === date), valid: !!iso };
-});
-function describe(day: typeof days[number]) {
+type CalendarDay = { date: string; iso: string; day: number; weekday: string; row: typeof rows[number] | undefined; valid: boolean };
+function describe(day: CalendarDay) {
   if (!day.valid) return `${digits(day.date)}؛ مهر ۳۰ روز دارد و این روز در تقویم وجود ندارد.`;
   const row = day.row;
   return `${digits(day.date)}، ${day.weekday}؛ ${row?.start ? row.end ? `ورود ${displayTime(row.start)}، خروج ${displayTime(row.end)}، مدت حضور ${format(work(row)!)}.` : `ورود ${displayTime(row.start)}، خروج ثبت‌نشده.` : row ? "بدون تردد در تصویر." : "داده‌ای ثبت نشده."}`;
 }
 
-export function AttendanceGantt({ person, currentTime, todayEntry, workDays }: { person: string; currentTime: string; todayEntry: WorkDay | null; workDays?: WorkDay[] }) {
+export function AttendanceGantt({ person, currentTime, todayEntry, workDays, month: selectedMonth }: { person: string; currentTime: string; todayEntry: WorkDay | null; workDays?: WorkDay[]; month?: string }) {
   const date = new Date(currentTime);
   const currentDay = toPersianDate(date.toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" }));
-  const localTime = (stamp: string) => new Date(stamp).toLocaleTimeString("en-GB", { timeZone: "Asia/Tehran", hour12: false });
-  const nowPosition = position(localTime(currentTime));
-  const month = currentDay.slice(0, 7);
-  const calendar = workDays ? Array.from({ length: 31 }, (_, index) => {
-    const jalali = `${month}/${String(index + 1).padStart(2, "0")}`;
-    const iso = fromPersianDate(jalali);
-    const entry = workDays.find(day => day.date === iso);
-    return { date: jalali, day: index + 1, weekday: iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("fa-IR", { weekday: "long", timeZone: "UTC" }) : "", valid: !!iso,
-      row: entry ? { date: jalali, day: "", start: localTime(entry.start), end: entry.end ? localTime(entry.end) : null } : undefined };
-  }).filter(day => day.valid) : days;
-  const displayDays = calendar.map(day => todayEntry && toPersianDate(todayEntry.date) === day.date ? { ...day, row: { date: day.date, day: day.weekday, start: localTime(todayEntry.start), end: todayEntry.end ? localTime(todayEntry.end) : null } } : day);
+    const nowPosition = position(tehranClock(currentTime));
+  const month = selectedMonth || currentDay.slice(0, 7);
+  const byDate = useMemo(() => new Map(workDays?.map(day => [day.date, day])), [workDays]);
+  const calendar = useMemo(() => {
+    const [year, number] = (workDays ? month : "1405/07").split("/").map(Number);
+    const weekday = new Intl.DateTimeFormat("fa-IR", { weekday: "long", timeZone: "UTC" });
+    return jalaliMonth(year, number).cells.filter(cell => cell !== null).map(cell => {
+      const jalali = `${year}/${String(number).padStart(2, "0")}/${String(cell.day).padStart(2, "0")}`;
+      const entry = byDate.get(cell.iso);
+      return { date: jalali, iso: cell.iso, day: cell.day, weekday: weekday.format(new Date(`${cell.iso}T12:00:00Z`)), valid: true,
+        row: workDays ? entry ? { date: jalali, day: "", start: tehranClock(entry.start), end: entry.end ? tehranClock(entry.end) : null } : undefined : rows.find(row => row.date === jalali) };
+    });
+  }, [month, byDate, workDays]);
+  const todayDate = todayEntry ? toPersianDate(todayEntry.date) : null;
+  const displayDays = calendar.map(day => todayEntry && todayDate === day.date ? { ...day, row: { date: day.date, day: day.weekday, start: tehranClock(todayEntry.start), end: todayEntry.end ? tehranClock(todayEntry.end) : null } } : day);
   const [selected, setSelected] = useState(1);
   const selectedDay = displayDays[Math.min(selected - 1, displayDays.length - 1)];
   return <div className={s.gantt}>
@@ -52,8 +53,8 @@ export function AttendanceGantt({ person, currentTime, todayEntry, workDays }: {
         const shiftStart = position(officialStart);
         const shiftEnd = position(officialEnd);
         const workingDay = day.valid && day.weekday !== "جمعه";
-        const storedDay = workDays?.find(entry => toPersianDate(entry.date) === day.date) || (todayEntry && toPersianDate(todayEntry.date) === day.date ? todayEntry : null);
-        const daySessions = storedDay ? storedDay.sessions.map(session => ({ start: localTime(session.start), end: session.end ? localTime(session.end) : null, mode: session.mode })) : row?.start ? [{ start: row.start, end: row.end, mode: "office" as WorkMode }] : [];
+        const storedDay = byDate.get(day.iso) || (todayEntry && todayDate === day.date ? todayEntry : null);
+        const daySessions = storedDay ? storedDay.sessions.map(session => ({ start: tehranClock(session.start), end: session.end ? tehranClock(session.end) : null, mode: session.mode })) : row?.start ? [{ start: row.start, end: row.end, mode: "office" as WorkMode }] : [];
         const spans = daySessions.map(session => {
           const start = position(session.start);
           const live = !session.end && day.date === currentDay && nowPosition >= start;
@@ -94,7 +95,7 @@ export function AttendanceGantt({ person, currentTime, todayEntry, workDays }: {
       })}
     </div></div>
     <div className={s.ganttLegend}><span><i className={s.ganttLegendOfficial} />ساعت کاری رسمی</span><span><i className={s.ganttLegendLive} />حضور نهایی‌نشده</span><span><i className={s.ganttLegendBar} />عادی</span><span><i className={s.ganttLegendRemote} />دورکاری</span><span><i className={s.ganttLegendMission} />مأموریت</span><span><i className={s.ganttLegendExtra} />اضافه‌کار خالص</span><span><i className={s.ganttLegendMarker} />ورود بدون خروج</span><span>جمعه‌ها با زمینهٔ متفاوت</span></div>
-    <p className={s.heatDetails} aria-live="polite">{todayEntry && toPersianDate(todayEntry.date) === selectedDay.date ? todayEntry.sessions.map(session => `${modeLabel(session.mode)}: ${displayTime(localTime(session.start))} تا ${session.end ? displayTime(localTime(session.end)) : "اکنون"}`).join(" · ") : workDays ? `${digits(selectedDay.date)}؛ ${selectedDay.row ? "تردد ثبت‌شده" : "بدون دادهٔ ثبت‌شده"}` : describe(selectedDay)}</p>
+    <p className={s.heatDetails} aria-live="polite">{todayEntry && toPersianDate(todayEntry.date) === selectedDay.date ? todayEntry.sessions.map(session => `${modeLabel(session.mode)}: ${displayTime(tehranClock(session.start))} تا ${session.end ? displayTime(tehranClock(session.end)) : "اکنون"}`).join(" · ") : workDays ? `${digits(selectedDay.date)}؛ ${selectedDay.row ? "تردد ثبت‌شده" : "بدون دادهٔ ثبت‌شده"}` : describe(selectedDay)}</p>
     <p className={s.sheetDisclaimer}>محور ساعت به وقت تهران است. نوار کم‌اشباع با حرکت نرمِ پرشدن، حضور احتمالی امروز تا ساعت فعلی است و خروج قطعی محسوب نمی‌شود؛ با ثبت خروج به نوار سرمه‌ای تبدیل می‌شود. بازهٔ زمینه، ساعت رسمی همان روز است؛ حضور قبل از ۸ و پس از پایان ساعت رسمی، بعد از کسر جبران کسری موظفی، به‌عنوان اضافه‌کار خالص نمایش داده می‌شود. مأموریت داخل کار اصلی است و دوباره شمرده نمی‌شود. ردیف‌های بدون داده به معنی غیبت نیستند.</p>
   </div>;
 }

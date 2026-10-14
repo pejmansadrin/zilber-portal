@@ -10,7 +10,6 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Loader from "@/components/ui/loader-4";
 import { accountSectionHref } from "@/lib/account/routes";
 import { ProfileImage } from "./ProfileImage";
-import { createClient } from "@/lib/supabase/client";
 import s from "./Portal.module.css";
 
 export function Avatar({ name, src, gender, small = false }: {
@@ -90,6 +89,7 @@ export function PortalShell({
     setBusy(true);
     setError("");
     try {
+      const { createClient } = await import("@/lib/supabase/client");
       const { error } = await createClient().auth.signOut({ scope: "local" });
       if (error) throw error;
       // A new document also drops all prefetched personal page payloads.

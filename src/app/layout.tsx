@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import PwaShell from "@/components/pwa/PwaShell";
 import { pwaBootstrap } from "@/lib/pwa-bootstrap";
-import StyledComponentsRegistry from "@/lib/styled-components-registry";
 import { PageLoadingProvider } from "@/components/ui/PageLoadingOverlay";
 import "./globals.css";
 
@@ -16,6 +15,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#16214f",
 };
+
 
 const themeScript = `
 (function() {
@@ -52,9 +52,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: pwaBootstrap }} />
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-        <StyledComponentsRegistry>
-          <PwaShell><PageLoadingProvider>{children}</PageLoadingProvider></PwaShell>
-        </StyledComponentsRegistry>
+        <PwaShell><PageLoadingProvider>{children}</PageLoadingProvider></PwaShell>
       </body>
     </html>
   );

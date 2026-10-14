@@ -22,6 +22,9 @@ export function scheduleBackgroundWork(work: () => void) {
 }
 
 export function canWarmAssets() {
+  const device = navigator as Navigator & { deviceMemory?: number };
+  if ((device.deviceMemory !== undefined && device.deviceMemory <= 4) ||
+      (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 4)) return false;
   const connection = (navigator as Navigator & {
     connection?: { saveData?: boolean; effectiveType?: string };
   }).connection;

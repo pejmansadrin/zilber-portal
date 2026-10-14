@@ -1,21 +1,24 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, useTransition, type FormEvent } from 'react';
 import { FilePlus2, X } from 'lucide-react';
+import { getCorrectionDay } from "@/actions/attendance-history";
+import type { AttendanceHistory } from "@/domain/attendance/history";
+import { allClockTimes, tehranClock, persianClock } from "@/lib/clock-format";
 import { requestWork, requestWorkInterval } from '@/actions/attendance-review';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { Select } from '@/components/ui/Select';
 import { TimePicker } from './TimePicker';
 import { AttendanceRequests } from './AttendanceRequests';
-import type { TimeRequest } from '@/types/attendance-review';
+import type { TimeRequestSummary } from '@/types/attendance-review';
 import { modeLabel, type WorkDay, type WorkMode } from '@/domain/attendance/work-sessions';
 import s from './AttendanceWorkspace.module.css';
 import modal from './TimePicker.module.css';
 
-const clock = (stamp: string, locale = 'fa-IR') => new Date(stamp).toLocaleTimeString(locale, { timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit', hour12: false });
+const clock = (stamp: string, locale = 'fa-IR') => locale === 'en-GB' ? tehranClock(stamp) : persianClock(stamp);
 const nextDate = (date: string) => new Date(Date.parse(date + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
 const stamp = (date: string, value: string) => new Date(`${date}T${value}:00+03:30`);
-export function AttendanceCorrection({ days, now, requests }: { days: WorkDay[]; now: string; requests: TimeRequest[] }) {
+export function AttendanceCorrection({ days, now, requests, history, hasMoreRequests }: { days: WorkDay[]; now: string; requests: TimeRequestSummary[]; history: AttendanceHistory; hasMoreRequests: boolean }) {
   const [formOpen, setFormOpen] = useState(false);
   const formId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -65,20 +68,41 @@ export function AttendanceCorrection({ days, now, requests }: { days: WorkDay[];
       if (element.open) element.close();
     };
   }, [formOpen]);
-  const day = days.find(day => day.date === date);
+  const existingDay = days.find(day => day.date === date);
+  const [loadedDay, setLoadedDay] = useState<{ date: string; day: WorkDay | null; error?: string } | null>(null);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (!formOpen || existingDay) return;
+    let cancelled = false;
+    getCorrectionDay(date).then(day => {
+      if (!cancelled) setLoadedDay({ date, day });
+    }).catch(() => {
+      if (!cancelled) setLoadedDay({ date, day: null, error: 'دریافت بازه‌های این روز انجام نشد.' });
+    });
+    return () => { cancelled = true; };
+  }, [date, formOpen, existingDay, retry]);
+  const resolved = loadedDay?.date === date ? loadedDay : null;
+  const loadingDay = formOpen && !existingDay && !resolved;
+  const day = existingDay ?? resolved?.day;
   const session = target === '' ? null : day?.sessions[Number(target)];
   const workSessions = day?.sessions.map((session, index) => ({ session, index })).filter(({ session }) => session.mode !== 'mission') ?? [];
   const pair = kind === 'mission' || (kind === 'register' && action === 'both');
   const timeDate = nextDay ? nextDate(date) : date;
   const endDate = endNextDay ? nextDate(timeDate) : timeDate;
-  const times = Array.from({ length: 1440 }, (_, minute) => `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`);
-  function allowedFor(dayDate: string) {
-    return times.filter(value => {
-      const at = stamp(dayDate, value).getTime();
-      return at <= Date.parse(now) && (kind !== 'mission' || !!session && session.mode !== 'mission' && at >= Date.parse(session.start) && at <= Date.parse(session.end ?? now));
-    });
-  }
-  const allowed = allowedFor(timeDate), endAllowed = allowedFor(endDate);
+  const [allowed, endAllowed] = useMemo(() => {
+    if (!formOpen || kind === 'late') return [[], []];
+    const current = Date.parse(now);
+    const start = session ? Date.parse(session.start) : 0;
+    const end = session?.end ? Date.parse(session.end) : current;
+    function allowedFor(dayDate: string) {
+      const midnight = stamp(dayDate, '00:00').getTime();
+      return allClockTimes.filter((_, minute) => {
+        const at = midnight + minute * 60000;
+        return at <= current && (kind !== 'mission' || !!session && session.mode !== 'mission' && at >= start && at <= end);
+      });
+    }
+    return [allowedFor(timeDate), pair ? allowedFor(endDate) : []];
+  }, [formOpen, kind, now, session, timeDate, endDate, pair]);
   function selectKind(value: typeof kind) {
     setKind(value); setTarget(''); setAction(value === 'correct' ? 'start' : 'both'); setNextDay(false); setEndNextDay(false); setFeedback(null);
   }
@@ -118,7 +142,7 @@ export function AttendanceCorrection({ days, now, requests }: { days: WorkDay[];
     </button>
     <dialog ref={dialog} id={`${formId}-dialog`} className={`${modal.panel} ${s.correctionModal}`} dir="rtl" aria-labelledby={`${formId}-title`} aria-describedby={`${formId}-hint`}
       onCancel={event => { event.preventDefault(); close(); }} onClose={() => { if (!dialog.current?.open) setFormOpen(false); }}>
-      <header className={modal.dialogHeader}>
+      {formOpen && <><header className={modal.dialogHeader}>
         <span className={modal.dialogIcon} aria-hidden="true"><FilePlus2 size={20} /></span>
         <div><h2 id={`${formId}-title`}>ثبت یا اصلاح تردد</h2><p>درخواست ثبت، اصلاح ساعت یا مأموریت</p></div>
         <button type="button" className={modal.close} disabled={busy} aria-label="بستن فرم ثبت یا اصلاح تردد" onClick={close}><X size={19} /></button>
@@ -141,9 +165,11 @@ export function AttendanceCorrection({ days, now, requests }: { days: WorkDay[];
         <label>دلیل درخواست<textarea value={reason} disabled={busy} onChange={event => setReason(event.target.value)} minLength={5} maxLength={2000} rows={3} required placeholder="دلیل ثبت یا اصلاح ساعت را بنویسید." /></label>
         {feedback && <p role={feedback.ok ? 'status' : 'alert'} className={feedback.ok ? s.registrationFeedback : s.entryError}>{feedback.message}</p>}
       </div>
-      <footer className={modal.dialogFooter}><button type="submit" className={modal.done} disabled={busy || missingWork}>{busy ? 'در حال ارسال…' : 'ارسال درخواست به مدیریت'}</button></footer>
-      </form>
+      {loadingDay && <p role="status">در حال دریافت بازه‌های این روز…</p>}
+      {resolved?.error && <p role="alert">{resolved.error} <button type="button" onClick={() => setRetry(value => value + 1)}>تلاش دوباره</button></p>}
+      <footer className={modal.dialogFooter}><button type="submit" className={modal.done} disabled={busy || missingWork || loadingDay || !!resolved?.error}>{busy ? 'در حال ارسال…' : 'ارسال درخواست به مدیریت'}</button></footer>
+      </form></>}
     </dialog>
-    <AttendanceRequests requests={requests} />
+    <AttendanceRequests requests={requests} history={history} hasMore={hasMoreRequests} />
   </section>;
 }

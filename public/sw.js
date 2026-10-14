@@ -105,6 +105,14 @@ self.addEventListener("fetch", event => {
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(async () => (await caches.match(OFFLINE)) || Response.error()));
   } else if (!url.search && allowed(url.pathname)) {
-    event.respondWith(cachedAsset(url.pathname).then(cached => cached || fetch(request)));
+    event.respondWith(cachedAsset(url.pathname).then(async cached => {
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (storable(response, url.pathname)) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache => cache.put(url.pathname, copy)).catch(() => {}));
+      }
+      return response;
+    }));
   }
 });

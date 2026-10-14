@@ -5,7 +5,7 @@
 .trigger[aria-expanded="true"]{border-color:var(--accent)}
 .dialog{--calendar-vh:100dvh;--calendar-vw:100vw;--calendar-top:0px;--calendar-left:0px;position:fixed;inset:auto;top:calc(var(--calendar-top) + (var(--calendar-vh) + env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2);left:calc(var(--calendar-left) + (var(--calendar-vw) + env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))/2);transform:translate(-50%,-50%);width:min(380px,calc(var(--calendar-vw) - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-width:none;max-height:calc(var(--calendar-vh) - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));margin:0;padding:0;box-sizing:border-box;overflow:hidden;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:22px;box-shadow:0 28px 90px rgb(8 20 40 / 26%);font:inherit}
 .dialog[open]{display:flex;flex-direction:column}
-.dialog::backdrop{background:rgb(6 14 30 / 42%);backdrop-filter:blur(4px)}
+.dialog::backdrop{background:rgb(6 14 30 / 42%);backdrop-filter:none}
 .dialogHeader{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:14px 16px;border-bottom:1px solid var(--line);color:var(--accent)}
 .dialogHeader h2{margin:0;font-size:15px;font-weight:700;color:var(--ink)}
 .close{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;margin-inline-start:auto;padding:0;border:1px solid var(--line);border-radius:11px;background:var(--subtle);color:var(--muted);cursor:pointer}

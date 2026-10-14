@@ -298,3 +298,9 @@
 .correspondenceItem .managementReply{background:color-mix(in srgb,var(--request-tone) 9%,var(--panel));border-inline-start-color:var(--request-tone)}
 .correspondenceItem .managementReply>span{color:var(--request-tone);font-weight:600}
 .correspondenceItem .correspondencePending{color:var(--request-tone);line-height:1.9;margin-bottom:0}
+
+/* Live labels change once a minute; continuous decorative motion wastes idle GPU time. */
+.ganttLive::before{animation:none;display:none}.ganttUnfinalized{animation:none}.ganttBar.ganttLive{transition:none}
+.historyNavigation{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding:12px 0;font-size:12px}
+.historyNavigation a{border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--surface);color:var(--ink)}
+.historyNavigation a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}

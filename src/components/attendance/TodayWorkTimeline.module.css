@@ -30,3 +30,5 @@
 :global(html.dark) .outer.live{background:#64738e}
 @media(prefers-reduced-motion:reduce){.outer.live{transition:none}}
 .now,.estimate{z-index:5}
+
+.live::after{display:none;animation:none}.bar.live{transition:none}

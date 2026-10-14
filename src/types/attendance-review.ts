@@ -6,6 +6,9 @@ export type TimeRequest = {
  original_sessions: WorkSession[]; reason: string; status: 'pending' | 'approved' | 'rejected';
  reviewer_id: string | null; review_note: string | null; reviewed_at: string | null; created_at: string;
 };
+export type TimeRequestSummary = Pick<TimeRequest,
+ 'id' | 'work_date' | 'kind' | 'action' | 'mode' | 'requested_at' | 'requested_until' |
+ 'session_index' | 'reason' | 'status' | 'review_note' | 'reviewed_at' | 'created_at'>;
 export function storedWorkDay(row: StoredWorkDay): WorkDay {
  const base = row.sessions.filter(session => session.mode !== 'mission');
  return { date: row.work_date, sessions: row.sessions, start: base[0].start, end: base.some(session => !session.end) ? null : base.at(-1)!.end };

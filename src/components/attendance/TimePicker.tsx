@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, Clock3, X } from "lucide-react";
 import { MagneticTimeWheel } from "./MagneticTimeWheel";
 import s from "./TimePicker.module.css";
@@ -21,8 +21,8 @@ export function TimePicker({ value, onChange, allowedTimes, disabled = false, de
   const trigger = useRef<HTMLButtonElement>(null);
   const displayValue = allowedTimes.includes(value) ? value : allowedTimes.at(-1)!;
   const [hour = "00", minute = "00"] = displayValue.split(":");
-  const hours = [...new Set(allowedTimes.map(time => Number(time.split(":")[0])))];
-  const minutes = allowedTimes.filter(time => time.startsWith(`${hour}:`)).map(time => Number(time.split(":")[1]));
+  const hours = useMemo(() => open ? [...new Set(allowedTimes.map(time => Number(time.slice(0, 2))))] : [], [allowedTimes, open]);
+  const minutes = useMemo(() => open ? allowedTimes.filter(time => time.startsWith(`${hour}:`)).map(time => Number(time.slice(3))) : [], [allowedTimes, hour, open]);
   function selectHour(nextHour: number) {
     const times = allowedTimes.filter(time => time.startsWith(`${two(nextHour)}:`));
     const nearest = times.reduce((best, next) => Math.abs(Number(next.split(":")[1]) - Number(minute)) < Math.abs(Number(best.split(":")[1]) - Number(minute)) ? next : best);
@@ -83,7 +83,7 @@ export function TimePicker({ value, onChange, allowedTimes, disabled = false, de
     <dialog ref={dialog} id={`${id}-panel`} className={s.panel} dir="rtl" aria-labelledby={`${id}-title`} aria-describedby={`${id}-hint`}
       onCancel={event => { event.preventDefault(); close(); }}
       onClose={() => { if (!dialog.current?.open) setOpen(false); }}>
-      <header className={s.dialogHeader}>
+      {open && <><header className={s.dialogHeader}>
         <span className={s.dialogIcon} aria-hidden="true"><Clock3 size={20} /></span>
         <div><h2 id={`${id}-title`}>{requestMode ? "ساعت درخواستی" : "انتخاب ساعت"}</h2><p>به وقت تهران</p></div>
         <button type="button" className={s.close} aria-label="بستن انتخاب‌گر ساعت" onClick={close}><X size={19} /></button>
@@ -101,7 +101,7 @@ export function TimePicker({ value, onChange, allowedTimes, disabled = false, de
       </div>
       <footer className={s.dialogFooter}>
         <button className={s.done} type="button" onClick={() => { onChange(displayValue); close(); }}><Check size={17} />{requestMode ? "انتخاب ساعت و ادامهٔ درخواست" : "انتخاب ساعت"}</button>
-      </footer>
+      </footer></>}
     </dialog>
   </div>;
 }

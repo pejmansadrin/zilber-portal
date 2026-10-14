@@ -49,7 +49,7 @@ export default function PwaShell({ children }: { children: React.ReactNode }) {
     const workers = new Map<ServiceWorker, () => void>();
     let cancelWarm = () => {};
     const warm = () => {
-      if (disposed || !registration || !canWarmAssets() || Date.now() - lastWarm < 30000) return;
+      if (disposed || document.documentElement.dataset.pwaMode !== "standalone" || !registration || !canWarmAssets() || Date.now() - lastWarm < 30000) return;
       lastWarm = Date.now();
       channels.forEach(close => close());
       channels.clear();

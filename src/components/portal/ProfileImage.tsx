@@ -13,6 +13,6 @@ export function ProfileImage({ src, gender, alt, width, height, className }: {
   const photo = src && attempts < limit
     ? attempts === 1 ? `${src}&retry=1` : src
     : defaultProfilePhoto(gender);
-  return <Image src={photo} alt={alt} width={width} height={height} className={className} unoptimized loading="eager"
+  return <Image src={photo} alt={alt} width={width} height={height} className={className} unoptimized loading="lazy"
     onError={() => { if (src && attempts < limit) setFailure({ src, attempts: attempts + 1 }); }} />;
 }

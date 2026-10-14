@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, Search, X } from "lucide-react";
 import { Avatar } from "./PortalShell";
-import { matchesDirectorySearch } from "@/lib/directory-search";
+import { normalizeDirectorySearch } from "@/lib/directory-search";
 import s from "./Portal.module.css";
 import p from "@/app/(portal)/people/People.module.css";
 
@@ -19,11 +19,19 @@ export function PeopleDirectory({ directory, selectedId }: { directory: Director
   const params = useSearchParams();
   const query = (params.get("q") || "").slice(0, 150);
   const input = useRef<HTMLInputElement>(null);
-  const visible = directory.filter(person => matchesDirectorySearch(
-    [person.full_name, person.email, person.employee_number, person.department, person.job_title], query,
-  ));
+  const [limit, setLimit] = useState(30);
+  const deferredQuery = useDeferredValue(query);
+  const index = useMemo(() => directory.map(person => ({ person, fields:
+    [person.full_name, person.email, person.employee_number, person.department, person.job_title]
+      .filter(value => value !== null).map(value => normalizeDirectorySearch(value)),
+  })), [directory]);
+  const visible = useMemo(() => {
+    const needle = normalizeDirectorySearch(deferredQuery);
+    return index.filter(entry => !needle || entry.fields.some(value => value.includes(needle))).map(entry => entry.person);
+  }, [index, deferredQuery]);
 
   function updateQuery(value: string) {
+    setLimit(30);
     const url = new URL(window.location.href);
     const trimmed = value.slice(0, 150);
     if (trimmed.trim()) url.searchParams.set("q", trimmed);
@@ -52,7 +60,7 @@ export function PeopleDirectory({ directory, selectedId }: { directory: Director
     <p className={p.resultCount} role="status" aria-live="polite" aria-atomic="true">
       {query ? `${visible.length.toLocaleString("fa-IR")} کاربر پیدا شد` : ""}
     </p>
-    <div id="people-results" className={p.list}>{visible.map(person => <Link
+    <div id="people-results" className={p.list} aria-busy={query !== deferredQuery}>{visible.slice(0, limit).map(person => <Link
       prefetch={false}
       className={`${p.person} ${selectedId === person.id ? p.selected : ""}`}
       aria-current={selectedId === person.id ? "page" : undefined}
@@ -64,6 +72,7 @@ export function PeopleDirectory({ directory, selectedId }: { directory: Director
       </span>
       {selectedId === person.id && <Check className={p.selectedCheck} size={18} aria-hidden="true" />}
     </Link>)}</div>
+    {visible.length > limit && <button type="button" className={s.secondary} onClick={() => setLimit(value => value + 30)}>نمایش کاربران بیشتر ({(visible.length - limit).toLocaleString('fa-IR')})</button>}
     {!visible.length && <p className={s.muted}>کاربری با این مشخصات پیدا نشد.</p>}
   </nav>;
 }

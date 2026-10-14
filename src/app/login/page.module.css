@@ -638,7 +638,7 @@
 }
 
 .submit:hover .arrowIcon {
-  transform: translateX(-3px);
+  transform: none;
 }
 
 .fields:disabled .submit {

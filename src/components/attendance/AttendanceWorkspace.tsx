@@ -1,12 +1,13 @@
 "use client";
 
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Clock3, Check, Building2, Laptop, BriefcaseBusiness, LogIn, LogOut } from "lucide-react";
 import s from "./AttendanceWorkspace.module.css";
 import { registerWork, requestWork, closePendingWork } from '@/actions/attendance-review';
 import { AttendanceRegistrationDialog } from "./AttendanceRegistrationDialog";
-import type { TimeRequest } from '@/types/attendance-review';
+import type { AttendanceHistory } from "@/domain/attendance/history";
+import type { TimeRequest, TimeRequestSummary } from '@/types/attendance-review';
 import { TodayWorkTimeline } from "./TodayWorkTimeline";
 import { TimePicker } from "./TimePicker";
 import { AttendanceCorrection } from "./AttendanceCorrection";
@@ -14,18 +15,20 @@ import { registrationDecision } from "@/domain/attendance/registration-time";
 import { TimesheetPreview } from "./TimesheetPreview";
 
 import { sessionMinutes, modeLabel, type WorkMode, type WorkDay } from "@/domain/attendance/work-sessions";
+import { useMinuteClock } from "@/lib/use-minute-clock";
+import { allClockTimes, tehranClock, persianClock } from "@/lib/clock-format";
 import { format } from "./timesheet-data";
 const workModes = [{ value: "office", label: "عادی", icon: Building2 }, { value: "remote", label: "دورکاری", icon: Laptop }, { value: "mission", label: "مأموریت", icon: BriefcaseBusiness }] as const;
-const time = (stamp: string) => new Date(stamp).toLocaleTimeString("fa-IR", { timeZone: "Asia/Tehran", hour: "2-digit", minute: "2-digit", hour12: false });
-const localTime = (stamp: string) => new Date(stamp).toLocaleTimeString("en-GB", { timeZone: "Asia/Tehran", hour: "2-digit", minute: "2-digit", hour12: false });
+const time = persianClock;
+const localTime = tehranClock;
 
-export function AttendanceWorkspace({ initialTime, name, days, requests }: { initialTime: string; name: string; days: WorkDay[]; requests: TimeRequest[] }) {
-  const [now, setNow] = useState(() => new Date(initialTime));
+export function AttendanceWorkspace({ initialTime, name, days, requests, pendingEntry: initialPendingEntry, history, hasMoreRequests }: { initialTime: string; name: string; days: WorkDay[]; requests: TimeRequestSummary[]; pendingEntry: TimeRequest | null; history: AttendanceHistory; hasMoreRequests: boolean }) {
+  const [now, setNow] = useMinuteClock(initialTime);
   const [busy, startTransition] = useTransition();
   const workDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
   const today = days.find(day => day.sessions.some(session => session.mode !== "mission" && !session.end)) || days.find(day => day.date === workDate) || null;
   const active = today?.sessions.find(session => session.mode !== "mission" && !session.end);
-  const pendingEntry = !active ? requests.find(request => request.status === "pending" && request.kind === "time" && request.action === "start" && request.mode !== "mission" && request.session_index === null && request.requested_at && !request.requested_until) : undefined;
+  const pendingEntry = !active ? initialPendingEntry ?? undefined : undefined;
   const mission = today?.sessions.find(session => session.mode === "mission" && !session.end);
   const [workMode, setWorkMode] = useState<WorkMode>("office");
   const [selectedTime, setSelectedTime] = useState(() => localTime(initialTime));
@@ -34,12 +37,8 @@ export function AttendanceWorkspace({ initialTime, name, days, requests }: { ini
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [requestError, setRequestError] = useState("");
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
   const value = edited ? selectedTime : localTime(now.toISOString());
-  const allowedTimes = Array.from({ length: 1440 }, (_, minute) => `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`);
+  const allowedTimes = allClockTimes;
   function register(action: "start" | "end", nextMode = workMode, confirmedAt?: string) {
     setError(""); setMessage("");
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) { setError("ساعت را وارد کنید."); return; }
@@ -112,7 +111,7 @@ export function AttendanceWorkspace({ initialTime, name, days, requests }: { ini
           } catch { setRequestError("ارسال درخواست انجام نشد؛ دوباره تلاش کنید."); }
         });
       }} />
-    <AttendanceCorrection days={days} now={now.toISOString()} requests={requests} />
-    <TimesheetPreview name={name} currentTime={now.toISOString()} todayEntry={today} workDays={days} />
+    <AttendanceCorrection days={days} now={now.toISOString()} requests={requests} history={history} hasMoreRequests={hasMoreRequests} />
+    <TimesheetPreview name={name} currentTime={now.toISOString()} todayEntry={today} workDays={days} history={history} />
   </div>;
 }
