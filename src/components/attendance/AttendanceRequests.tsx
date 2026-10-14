@@ -15,8 +15,8 @@ function title(request: TimeRequestSummary) {
  if (request.requested_until) return request.mode === 'mission' ? 'درخواست ثبت مأموریت' : 'درخواست ثبت ورود و خروج';
  return `${request.session_index !== null ? 'درخواست اصلاح' : 'درخواست ثبت'} ${request.action === 'start' ? 'ورود' : 'خروج'}`;
 }
-export const AttendanceRequests = memo(function AttendanceRequests({ requests, history, hasMore }: { requests: TimeRequestSummary[]; history: AttendanceHistory; hasMore: boolean }) {
- const [open, setOpen] = useState(history.requestsPage > 1);
+export const AttendanceRequests = memo(function AttendanceRequests({ requests, history, hasMore, expanded = false, onPageChange }: { requests: TimeRequestSummary[]; history: AttendanceHistory; hasMore: boolean; expanded?: boolean; onPageChange?: (page: number) => void }) {
+ const [open, setOpen] = useState(expanded || history.requestsPage > 1);
  const href = (page: number) => `/attendance?month=${encodeURIComponent(history.month)}&requestsPage=${page}`;
  return <details className={s.correspondence} open={open} onToggle={event => setOpen(event.currentTarget.open)}>
   <summary className={s.correspondenceSummary}><MessagesSquare size={18} aria-hidden="true" /><span>تاریخچه مکاتبات</span><span className={s.correspondenceCount}>{requests.length.toLocaleString('fa-IR')}</span><ChevronDown size={18} aria-hidden="true" /></summary>
@@ -27,9 +27,9 @@ export const AttendanceRequests = memo(function AttendanceRequests({ requests, h
    {request.status === 'pending' ? <p className={s.correspondencePending}>درخواست ارسال شده است؛ پاسخ مدیریت همین‌جا نمایش داده می‌شود.</p> : <div className={`${s.correspondenceMessage} ${s.managementReply}`}><span>پاسخ مدیریت{request.reviewed_at && <> · <time dateTime={request.reviewed_at}>{dateTime(request.reviewed_at)}</time></>}</span><p>{request.review_note || (request.status === 'approved' ? 'درخواست شما تأیید شد.' : 'درخواست شما رد شد؛ مدیریت توضیحی ثبت نکرده است.')}</p></div>}
   </article>)}</div>}
   <nav className={s.historyNavigation} aria-label="صفحه‌های مکاتبات">
-   {history.requestsPage > 1 && <Link prefetch={false} href={href(history.requestsPage - 1)}>صفحه قبل</Link>}
+   {history.requestsPage > 1 && (onPageChange ? <button type="button" onClick={() => onPageChange(history.requestsPage - 1)}>صفحه قبل</button> : <Link prefetch={false} href={href(history.requestsPage - 1)}>صفحه قبل</Link>)}
    <span>صفحه {history.requestsPage.toLocaleString('fa-IR')}</span>
-   {hasMore && <Link prefetch={false} href={href(history.requestsPage + 1)}>صفحه بعد</Link>}
+   {hasMore && (onPageChange ? <button type="button" onClick={() => onPageChange(history.requestsPage + 1)}>صفحه بعد</button> : <Link prefetch={false} href={href(history.requestsPage + 1)}>صفحه بعد</Link>)}
   </nav></>}
  </details>;
 });

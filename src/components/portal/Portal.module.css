@@ -2031,3 +2031,13 @@
 .overviewCard:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 3px; }
 @media (min-width: 1200px) { .compactAccount .formGrid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width: 600px) { .overviewCards { grid-template-columns: 1fr; } .compactAccount .panel { padding: 16px; } }
+
+.collectionPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0 20px;
+  font-size: 0.8rem;
+}
+.collectionPagination button { min-height: 44px; }

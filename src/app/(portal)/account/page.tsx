@@ -1,5 +1,5 @@
 import { ShieldCheck } from "lucide-react";
-import { getAccount, getAccountRecords } from "@/lib/account/data";
+import { getAccount } from "@/lib/account/data";
 import { AccountWorkspace } from "@/components/portal/AccountWorkspace";
 import s from "@/components/portal/Portal.module.css";
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export default async function AccountPage({
 }) {
   const { user, employee, avatar } = await getAccount();
   const { section } = await searchParams;
-  const records = employee ? getAccountRecords(employee.id) : Promise.resolve({});
+  const revision = new Date().toISOString();
   return (
     <>
       {!employee && <div className={s.pageTitle} id="account-workspace">
@@ -29,7 +29,7 @@ export default async function AccountPage({
         <AccountWorkspace
           employee={employee}
           avatar={avatar}
-          records={records}
+          revision={revision}
           email={user.email || ""}
           initialSection={section || "overview"}
         />

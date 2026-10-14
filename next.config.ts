@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     "/*": ["./node_modules/sharp/src/build/Release/*.node"],
   },
   compiler: { styledComponents: true },
-  experimental: { staleTimes: { dynamic: 60, static: 120 }, serverActions: { bodySizeLimit: "6mb" } },
+  experimental: { staleTimes: { dynamic: 0, static: 120 }, serverActions: { bodySizeLimit: "6mb" } },
 };
 
 export default nextConfig;

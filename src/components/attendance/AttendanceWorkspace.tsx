@@ -5,24 +5,25 @@ import { useState, useTransition } from "react";
 import { Clock3, Check, Building2, Laptop, BriefcaseBusiness, LogIn, LogOut } from "lucide-react";
 import s from "./AttendanceWorkspace.module.css";
 import { registerWork, requestWork, closePendingWork } from '@/actions/attendance-review';
-import { AttendanceRegistrationDialog } from "./AttendanceRegistrationDialog";
 import type { AttendanceHistory } from "@/domain/attendance/history";
-import type { TimeRequest, TimeRequestSummary } from '@/types/attendance-review';
+import type { TimeRequest } from '@/types/attendance-review';
 import { TodayWorkTimeline } from "./TodayWorkTimeline";
 import { TimePicker } from "./TimePicker";
 import { AttendanceCorrection } from "./AttendanceCorrection";
 import { registrationDecision } from "@/domain/attendance/registration-time";
-import { TimesheetPreview } from "./TimesheetPreview";
+import { AttendanceContent } from "./AttendanceContent";
+import dynamic from "next/dynamic";
 
 import { sessionMinutes, modeLabel, type WorkMode, type WorkDay } from "@/domain/attendance/work-sessions";
 import { useMinuteClock } from "@/lib/use-minute-clock";
 import { allClockTimes, tehranClock, persianClock } from "@/lib/clock-format";
 import { format } from "./timesheet-data";
+const AttendanceRegistrationDialog = dynamic(() => import("./AttendanceRegistrationDialog").then(module => module.AttendanceRegistrationDialog));
 const workModes = [{ value: "office", label: "عادی", icon: Building2 }, { value: "remote", label: "دورکاری", icon: Laptop }, { value: "mission", label: "مأموریت", icon: BriefcaseBusiness }] as const;
 const time = persianClock;
 const localTime = tehranClock;
 
-export function AttendanceWorkspace({ initialTime, name, days, requests, pendingEntry: initialPendingEntry, history, hasMoreRequests }: { initialTime: string; name: string; days: WorkDay[]; requests: TimeRequestSummary[]; pendingEntry: TimeRequest | null; history: AttendanceHistory; hasMoreRequests: boolean }) {
+export function AttendanceWorkspace({ initialTime, name, days, pendingEntry: initialPendingEntry, history, showHistory = false }: { showHistory?: boolean; initialTime: string; name: string; days: WorkDay[]; pendingEntry: Pick<TimeRequest, 'id' | 'mode' | 'requested_at'> | null; history: AttendanceHistory }) {
   const [now, setNow] = useMinuteClock(initialTime);
   const [busy, startTransition] = useTransition();
   const workDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
@@ -96,7 +97,7 @@ export function AttendanceWorkspace({ initialTime, name, days, requests, pending
       <TodayWorkTimeline day={today} currentTime={now.toISOString()} />
       {today && <div className={s.sessionList} aria-label="بازه‌های کار امروز">{today.sessions.map((session, index) => <div className={s.sessionItem} key={session.start + index}><span className={s.sessionMode} data-mode={session.mode}>{modeLabel(session.mode)}</span><span className={s.sessionTimes}>{time(session.start)}<span>←</span>{session.end ? time(session.end) : "اکنون"}</span><strong dir="ltr">{format(sessionMinutes([session], now.toISOString()))}</strong></div>)}</div>}
     </section>
-    <AttendanceRegistrationDialog key={pendingRequest?.at ?? "closed"} pending={pendingRequest} busy={busy} error={requestError} onClose={() => setPendingRequest(null)}
+    {pendingRequest && <AttendanceRegistrationDialog key={pendingRequest?.at ?? "closed"} pending={pendingRequest} busy={busy} error={requestError} onClose={() => setPendingRequest(null)}
       onConfirm={() => { if (pendingRequest) register(pendingRequest.action, pendingRequest.mode, pendingRequest.at); }}
       onCorrect={() => { setPendingRequest(null); setEdited(false); setError(""); }}
       onRequest={reason => {
@@ -110,8 +111,8 @@ export function AttendanceWorkspace({ initialTime, name, days, requests, pending
             return;
           } catch { setRequestError("ارسال درخواست انجام نشد؛ دوباره تلاش کنید."); }
         });
-      }} />
-    <AttendanceCorrection days={days} now={now.toISOString()} requests={requests} history={history} hasMoreRequests={hasMoreRequests} />
-    <TimesheetPreview name={name} currentTime={now.toISOString()} todayEntry={today} workDays={days} history={history} />
+      }} />}
+    <AttendanceCorrection days={days} now={now.toISOString()} />
+    <AttendanceContent name={name} currentTime={now.toISOString()} todayEntry={today} history={history} revision={initialTime} showHistory={showHistory} />
   </div>;
 }

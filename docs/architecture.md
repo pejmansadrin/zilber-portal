@@ -27,6 +27,9 @@ layout, server-only data access and database-enforced business rules.
   visibility is not permission enforcement; every read/mutation enforces its own
   access boundary. Existing URLs are unchanged. `/admin` redirects to `/people`.
 
+See [mobile-performance.md](mobile-performance.md) for the loading scenarios,
+content ownership, freshness rules, and reproducible mobile browser checks.
+
 ## Read budgets
 
 The attendance administrator fetches at most 51 attendance rows and 51 requests
@@ -40,7 +43,7 @@ Directory records used for name matching stay on the server. Only names, user ID
 and departments needed for the displayed rows reach the admin component. Attendance
 and request queries run concurrently once search identities are available.
 
-The shared shell and account-record streaming are described in
+The shared shell and on-demand account records are described in
 [app-navigation.md](app-navigation.md). Private HTML, RSC, images and mutation
 responses must not enter the service-worker cache.
 
@@ -55,8 +58,8 @@ Architecture tests exercise actual Supabase query construction against an isolat
 fetch fixture: bounded ranges, ordering, filter propagation, denied roles before
 I/O, empty results, errors and minimal response fields. They also enforce import
 boundaries and regression cases for registration windows and overlapping missions.
-The streaming test verifies the shell precedes delayed records. CI runs lint and
-both architectural suites. These tests do not establish live database policy state.
+The streaming test verifies that page content can arrive before delayed identity.
+The mobile data suite enforces the independent read budgets and API contracts. These tests do not establish live database policy state.
 
 A production-preview browser check used an isolated synthetic Supabase fixture
 with 61 records, a 390px mobile viewport, 4x CPU throttling and Fast 4G emulation.
@@ -70,10 +73,6 @@ UI and query integration, not real-device latency, live RLS or deployed behavior
 - The cloud employee schema predates the checked-in migrations. Establish a
   verified baseline and reconcile migration history before resetting or rebuilding
   a database. Existing migrations have not been rewritten or applied in this refactor.
-- Personal attendance history still reads all of that user's records; it needs
-  bounded period loading with independent current/open-session context and
-  on-demand historical-day reads for corrections. Simply limiting its rows would
-  hide pending entries, overnight work or editable old sessions.
 - The directory RPC still reads the full directory on the server. A minimal,
   searchable database endpoint can remove that cost after schema verification.
 - Legacy leave/prototype code remains isolated from the current attendance flow.

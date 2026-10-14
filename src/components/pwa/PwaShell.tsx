@@ -4,8 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { Download, Share, MoreVertical, Smartphone, PlusSquare } from "lucide-react";
 import s from "./PwaShell.module.css";
-import { warmAppAssets } from "@/lib/app-preload";
-import { canWarmAssets, scheduleBackgroundWork } from "@/lib/background-work";
+import { scheduleBackgroundWork } from "@/lib/background-work";
 
 interface InstallPrompt extends Event {
   prompt(): Promise<void>;
@@ -44,54 +43,21 @@ export default function PwaShell({ children }: { children: React.ReactNode }) {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || process.env.NODE_ENV !== "production") return;
     let disposed = false;
     let registration: ServiceWorkerRegistration | undefined;
-    let lastWarm = 0;
-    const channels = new Set<() => void>();
-    const workers = new Map<ServiceWorker, () => void>();
-    let cancelWarm = () => {};
-    const warm = () => {
-      if (disposed || document.documentElement.dataset.pwaMode !== "standalone" || !registration || !canWarmAssets() || Date.now() - lastWarm < 30000) return;
-      lastWarm = Date.now();
-      channels.forEach(close => close());
-      channels.clear();
-      channels.add(warmAppAssets(registration, () => {}));
-    };
-    const queueWarm = () => { cancelWarm(); cancelWarm = scheduleBackgroundWork(warm); };
+    // Install/update the worker at idle. Assets are cached as visited; never
+    // download every route's code in competition with a mobile user's task.
+    const cancel = scheduleBackgroundWork(() => {
+      void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
+        .then(value => { if (!disposed) registration = value; })
+        .catch(() => {});
+    });
     const update = () => {
-      if (!document.hidden) { void registration?.update().catch(() => {}); queueWarm(); }
+      if (!document.hidden) void registration?.update().catch(() => {});
     };
-    const online = () => { lastWarm = 0; queueWarm(); };
-    const controller = () => { lastWarm = 0; queueWarm(); };
-    const watchUpdate = () => {
-      const worker = registration?.installing;
-      if (!worker || workers.has(worker)) return;
-      const changed = () => {
-        if (worker.state === "installed") { lastWarm = 0; queueWarm(); }
-      };
-      workers.set(worker, changed);
-      worker.addEventListener("statechange", changed);
-    };
-    void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
-      .then(async value => {
-        if (disposed) return;
-        registration = value;
-        registration.addEventListener("updatefound", watchUpdate);
-        watchUpdate();
-        await navigator.serviceWorker.ready;
-        if (!disposed) queueWarm();
-      })
-      .catch(() => {});
     document.addEventListener("visibilitychange", update);
-    window.addEventListener("online", online);
-    navigator.serviceWorker.addEventListener("controllerchange", controller);
     return () => {
       disposed = true;
-      cancelWarm();
-      channels.forEach(close => close());
-      workers.forEach((changed, worker) => worker.removeEventListener("statechange", changed));
-      registration?.removeEventListener("updatefound", watchUpdate);
+      cancel();
       document.removeEventListener("visibilitychange", update);
-      window.removeEventListener("online", online);
-      navigator.serviceWorker.removeEventListener("controllerchange", controller);
     };
   }, []);
 

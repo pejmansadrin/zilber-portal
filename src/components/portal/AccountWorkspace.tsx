@@ -2,8 +2,6 @@
 
 import { Select } from "@/components/ui/Select";
 import {
-  Suspense,
-  use,
   startTransition,
   useActionState,
   useEffect,
@@ -11,6 +9,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { usePrivateResource } from "@/lib/use-private-resource";
 import { PortalSkeleton } from "./PortalSkeleton";
 import {
   UserRound,
@@ -320,6 +319,14 @@ function ReadFields({
     </dl>
   );
 }
+function RecordDisclosure({ summary, children }: { summary: React.ReactNode; children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  // Mount on first use, then retain the editor so closing it preserves drafts.
+  return <details onToggle={event => { if (event.currentTarget.open) setMounted(true); }}>
+    <summary>{summary}</summary>{mounted && children}
+  </details>;
+}
+
 function CollectionPanel({
   config,
   records,
@@ -422,8 +429,7 @@ function CollectionPanel({
             )}
           </div>
           {config.readOnly ? (
-            <details>
-              <summary>جزئیات {config.singular} · ثبت توسط سازمان</summary>
+            <RecordDisclosure summary={<>جزئیات {config.singular} · ثبت توسط سازمان</>}>
               <ReadFields
                 fields={config.fields.filter(
                   (f) => f.name !== "employee_feedback",
@@ -447,10 +453,9 @@ function CollectionPanel({
                   />
                 </div>
               )}
-            </details>
+            </RecordDisclosure>
           ) : (
-            <details>
-              <summary>مشاهده و ویرایش</summary>
+            <RecordDisclosure summary="مشاهده و ویرایش">
               <EditorForm
                 fields={config.fields}
                 record={record}
@@ -458,7 +463,7 @@ function CollectionPanel({
                 formKey={`${config.id}-${record.id}`}
                 onDirty={onDirty}
               />
-            </details>
+            </RecordDisclosure>
           )}
         </article>
       ))}
@@ -584,26 +589,32 @@ function Security({ email, onDirty }: { email: string; onDirty: Dirty }) {
     </section>
   );
 }
-function AccountCollections({ records, group, onDirty }: {
-  records: Promise<Record<string, EmployeeRecord[]>>;
-  group: string;
-  onDirty: Dirty;
-}) {
-  const resolved = use(records);
-  return collections.filter(collection => collection.group === group).map(config => (
-    <CollectionPanel key={config.id} config={config} records={resolved[config.id] || []} onDirty={onDirty} />
-  ));
+function AccountCollection({ config, revision, onDirty, dirty }: { config: Collection; revision: string; onDirty: Dirty; dirty: boolean }) {
+  const [page, setPage] = useState(1);
+  const { data, error, retry, refreshing } = usePrivateResource<{ records: EmployeeRecord[]; hasMore: boolean }>(`/api/account/collection?collection=${encodeURIComponent(config.id)}&page=${page}`, revision);
+  return <div aria-busy={refreshing}>
+    {error && <p role="alert">{error} <button type="button" onClick={retry}>تلاش دوباره</button></p>}
+    {!data ? !error && <PortalSkeleton /> : <>
+      {refreshing && <p role="status">در حال به‌روزرسانی…</p>}
+      <CollectionPanel key={page} config={config} records={data.records} onDirty={onDirty} />
+      {(page > 1 || data.hasMore) && <nav aria-label={`صفحه‌های ${config.title}`} className={s.collectionPagination}>
+        <button type="button" className={s.secondary} disabled={page <= 1 || dirty || refreshing} onClick={() => setPage(value => value - 1)}>صفحه قبل</button>
+        <span>صفحه {page.toLocaleString('fa-IR')}</span>
+        <button type="button" className={s.secondary} disabled={!data.hasMore || dirty || refreshing} onClick={() => setPage(value => value + 1)}>صفحه بعد</button>
+      </nav>}
+    </>}
+  </div>;
 }
 
 export function AccountWorkspace({
   employee,
-  records,
+  revision,
   avatar,
   email,
   initialSection,
 }: {
   employee: Employee;
-  records: Promise<Record<string, EmployeeRecord[]>>;
+  revision: string;
   avatar: string | null;
   email: string;
   initialSection: string;
@@ -1033,9 +1044,7 @@ export function AccountWorkspace({
             />
           </section>
         )}
-        {collections.some(collection => collection.group === active) && <Suspense key={active} fallback={<PortalSkeleton />}>
-          <AccountCollections records={records} group={active} onDirty={onDirty} />
-        </Suspense>}
+        {collections.filter(collection => collection.group === active).map(config => <AccountCollection key={config.id} config={config} revision={revision} onDirty={onDirty} dirty={dirty.size > 0} />)}
         {active === "security" && <Security email={email} onDirty={onDirty} />}
       </div>
     </div>

@@ -304,3 +304,23 @@
 .historyNavigation{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding:12px 0;font-size:12px}
 .historyNavigation a{border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--surface);color:var(--ink)}
 .historyNavigation a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.contentToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.contentToggle span:first-child { font-weight: 700; }
+.contentToggle span:last-child { font-size: 0.8rem; }
+.contentToggle:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.historyNavigation button { font: inherit; color: inherit; cursor: pointer; padding: 8px 12px; }

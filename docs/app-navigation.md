@@ -7,28 +7,25 @@ Packaging rejects a manifest from another build.
 
 The launch screen disappears after hydration; a CSS deadline also hides it after
 800 ms if JavaScript or data is delayed. It never waits for asset downloads, fonts,
-or the complete document. Public asset warming starts after window load, a two-second
-delay and an idle callback. It is skipped on reported 2G/3G, data-saving, hidden and
-offline connections. Later startups reuse the local files. Interrupted downloads are retried, and one
-previous complete release is retained for existing tabs. Updates do not reload a
-running form; a waiting worker activates through the browser's normal lifecycle.
+or the complete document. The worker registers after page load and an idle delay.
+Public assets are cached as they are requested. The app no longer bulk-downloads
+all route bundles on launch. Updates do not reload a running form.
 
 Dashboard, account, attendance, people and attendance administration share the
 `src/app/(portal)/layout.tsx` shell. The route group preserves the existing URLs.
-Its Suspense boundary streams a neutral shell while account data resolves, without
-revealing identity or admin controls. The authenticated shell stays mounted during
-navigation. A content-only `loading.tsx` keeps the header and navigation interactive
-while each page loads. Page/action authorization and database RLS remain in place;
-the persistent layout is not the authorization boundary.
+The header identity has its own Suspense boundary; page content does not wait for
+it. A content-only `loading.tsx` keeps shared navigation mounted across routes.
+Dashboard service links render independently of its personalized overview. Optional
+identity/overview failures have their own error boundary. Every private data read
+and mutation enforces authorization; the layout is not the authorization boundary.
 
-There is no bulk private-route prefetch or automatic invalidation/refetch loop.
-Visible links use Next's automatic partial prefetch to the loading boundary.
-Account identity and access-role queries run concurrently after authentication.
-Account records stream through a promise: the overview, tabs and personal fields
-do not wait for the collection queries; only collection panels suspend.
+There is no bulk private-route prefetch or periodic refetch loop. Account collections
+load only when their tab mounts, using bounded APIs with per-collection pagination.
+Personal attendance initially loads registration context only. History, requests and
+the chart are opened separately. See [mobile-performance.md](mobile-performance.md).
 Personal and organization edits revalidate the shared layout to update its identity.
 
-`AppLink` defaults to automatic prefetch and uses a non-blocking progress bar only when
+`AppLink` enables partial prefetch on pointer/focus intent and uses a non-blocking progress bar only when
 a transition exceeds 180 ms. Account tab buttons already switch locally using
 native history, without waiting for a server request. Logout opens a new document
 to discard in-memory personal page payloads.
@@ -42,11 +39,6 @@ Verification: `node ops/qa/pwa.mjs` includes worker tests for public-only cachin
 auth isolation, partial downloads, version upgrades and rollback. Prefetching is
 production-only; use a production build to measure actual navigation latency.
 
-Local production-browser check (390x844, 4x CPU slowdown, Fast 4G emulation):
-with synthetic account responses delayed 900 ms and attendance/record responses
-delayed 6000 ms, the attendance loading shell appeared about 65 ms after navigation,
-and content arrived about 7.76 s later. The same header DOM node survived dashboard,
-attendance and account navigation. Account overview appeared around 1.11 s without
-waiting for the record collections. These are isolated fixture observations, not
-production Supabase or physical-device benchmarks. No horizontal overflow or browser
-console errors were observed. Authentication remains network-validated before routing.
+Production browser scenarios and their evidence boundary are documented in
+[mobile-performance.md](mobile-performance.md). Authentication still validates the
+current user before private reads and mutations.

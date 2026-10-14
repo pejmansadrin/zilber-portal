@@ -21,10 +21,10 @@ let releaseContent;
 const account = new Promise(resolve => { releaseAccount = resolve; });
 const content = new Promise(resolve => { releaseContent = resolve; });
 const { default: Layout } = await load("src/app/(portal)/layout.tsx", {
-  "@/lib/account/data": { getAccount: () => account },
-  "@/components/portal/PortalShell": { PortalShell: ({ children, pending }) => React.createElement("div", null,
-    React.createElement("nav", null, pending ? "public-shell" : "authenticated-shell"), children) },
-  "@/components/portal/PortalSkeleton": { PortalSkeleton: () => React.createElement("p", null, "content-skeleton") },
+  "@/components/portal/ContentBoundary": { ContentBoundary: ({ children }) => children },
+  "@/lib/account/data": { getPortalIdentity: () => account },
+  "@/components/portal/PortalShell": { PortalShell: ({ children, header }) => React.createElement("div", null, header, children) },
+  "@/components/portal/PortalHeader": { PortalHeader: ({ pending }) => React.createElement("nav", null, pending ? "public-shell" : "authenticated-shell") },
 });
 async function SlowContent() {
   await content;
@@ -53,12 +53,13 @@ async function until(value) {
 }
 await until("public-shell");
 assert(!output.includes("private-records"));
-releaseAccount({ user: { user_metadata: {} }, employee: null, avatar: null, accessRole: "employee" });
-await until("authenticated-shell");
 await until("waiting-for-records");
-assert(!output.includes("private-records"));
 releaseContent();
 await until("private-records");
+// Private content has its own guard and can resolve while identity is still delayed.
+assert(!output.includes("authenticated-shell"));
+releaseAccount({ user: { user_metadata: {} }, employee: null, avatar: null, accessRole: "employee" });
+await until("authenticated-shell");
 await reader.cancel();
 
 const listeners = new Map();

@@ -32,6 +32,7 @@ build:
     - node ops/qa/profile-photo.mjs
     - node ops/qa/pwa.mjs
     - node ops/qa/navigation-streaming.mjs
+    - node ops/qa/mobile-data.mjs
     - node ops/qa/directory-search.mjs
     - python3 ops/qa/deploy-health.py
     - npm run build

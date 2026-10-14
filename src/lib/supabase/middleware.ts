@@ -34,12 +34,12 @@ export async function updateSession(request: NextRequest) {
   );
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: claims,
+  } = await supabase.auth.getClaims();
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/auth');
 
-  if (!user && !isAuthPage && request.nextUrl.pathname !== '/') {
+  if (!claims?.claims && !isAuthPage && request.nextUrl.pathname !== '/') {
     // If not logged in and requesting protected area, redirect to login
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   }
 
-  if (user && isAuthPage) {
+  if (claims?.claims && isAuthPage) {
     // If logged in and visiting login page, redirect to dashboard
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';

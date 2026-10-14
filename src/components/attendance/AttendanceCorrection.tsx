@@ -3,14 +3,11 @@
 import { useEffect, useId, useMemo, useRef, useState, useTransition, type FormEvent } from 'react';
 import { FilePlus2, X } from 'lucide-react';
 import { getCorrectionDay } from "@/actions/attendance-history";
-import type { AttendanceHistory } from "@/domain/attendance/history";
 import { allClockTimes, tehranClock, persianClock } from "@/lib/clock-format";
 import { requestWork, requestWorkInterval } from '@/actions/attendance-review';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { Select } from '@/components/ui/Select';
 import { TimePicker } from './TimePicker';
-import { AttendanceRequests } from './AttendanceRequests';
-import type { TimeRequestSummary } from '@/types/attendance-review';
 import { modeLabel, type WorkDay, type WorkMode } from '@/domain/attendance/work-sessions';
 import s from './AttendanceWorkspace.module.css';
 import modal from './TimePicker.module.css';
@@ -18,7 +15,7 @@ import modal from './TimePicker.module.css';
 const clock = (stamp: string, locale = 'fa-IR') => locale === 'en-GB' ? tehranClock(stamp) : persianClock(stamp);
 const nextDate = (date: string) => new Date(Date.parse(date + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
 const stamp = (date: string, value: string) => new Date(`${date}T${value}:00+03:30`);
-export function AttendanceCorrection({ days, now, requests, history, hasMoreRequests }: { days: WorkDay[]; now: string; requests: TimeRequestSummary[]; history: AttendanceHistory; hasMoreRequests: boolean }) {
+export function AttendanceCorrection({ days, now }: { days: WorkDay[]; now: string }) {
   const [formOpen, setFormOpen] = useState(false);
   const formId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -170,6 +167,5 @@ export function AttendanceCorrection({ days, now, requests, history, hasMoreRequ
       <footer className={modal.dialogFooter}><button type="submit" className={modal.done} disabled={busy || missingWork || loadingDay || !!resolved?.error}>{busy ? 'در حال ارسال…' : 'ارسال درخواست به مدیریت'}</button></footer>
       </form></>}
     </dialog>
-    <AttendanceRequests requests={requests} history={history} hasMore={hasMoreRequests} />
   </section>;
 }

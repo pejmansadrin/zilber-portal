@@ -1,3 +1,5 @@
+import { ContentBoundary } from "@/components/portal/ContentBoundary";
+import { Suspense } from "react";
 import Link from "@/components/navigation/AppLink";
 import {
   ArrowLeft,
@@ -98,7 +100,7 @@ const shortcuts = [
   },
 ];
 
-export default async function DashboardPage() {
+async function DashboardOverview() {
   const { user, employee, avatar, accessRole } = await getAccount();
   const name =
     employee?.full_name ||
@@ -115,40 +117,7 @@ export default async function DashboardPage() {
     href: accountSectionHref(item.section),
   }));
   const nextStep = checks.find((item) => !item.complete);
-  const today = new Date();
-  const weekday = new Intl.DateTimeFormat("fa-IR", {
-    weekday: "long",
-    timeZone: "Asia/Tehran",
-  }).format(today);
-  const date = new Intl.DateTimeFormat("fa-IR", {
-    dateStyle: "long",
-    timeZone: "Asia/Tehran",
-  }).format(today);
-
   return (
-    <>
-      <div className={d.pageHeading}>
-        <div>
-          <p className={d.eyebrow}>پورتال همکاران زیلبر</p>
-          <h1>میز کار شما</h1>
-        </div>
-        <div className={d.date}>
-          <span className={d.dateIcon}>
-            <CalendarDays size={20} aria-hidden="true" />
-          </span>
-          <div>
-            <span>{weekday}</span>
-            <time
-              dateTime={new Intl.DateTimeFormat("en-CA", {
-                timeZone: "Asia/Tehran",
-              }).format(today)}
-            >
-              {date}
-            </time>
-          </div>
-        </div>
-      </div>
-
       <div className={d.overview}>
         <section
           className={`${d.surface} ${d.welcome}`}
@@ -268,6 +237,46 @@ export default async function DashboardPage() {
           )}
         </section>}
       </div>
+
+  );
+}
+
+export default function DashboardPage() {
+  const today = new Date();
+  const weekday = new Intl.DateTimeFormat("fa-IR", {
+    weekday: "long",
+    timeZone: "Asia/Tehran",
+  }).format(today);
+  const date = new Intl.DateTimeFormat("fa-IR", {
+    dateStyle: "long",
+    timeZone: "Asia/Tehran",
+  }).format(today);
+
+  return (
+    <>
+      <div className={d.pageHeading}>
+        <div>
+          <p className={d.eyebrow}>پورتال همکاران زیلبر</p>
+          <h1>میز کار شما</h1>
+        </div>
+        <div className={d.date}>
+          <span className={d.dateIcon}>
+            <CalendarDays size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <span>{weekday}</span>
+            <time
+              dateTime={new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Tehran",
+              }).format(today)}
+            >
+              {date}
+            </time>
+          </div>
+        </div>
+      </div>
+
+      <ContentBoundary><Suspense fallback={<p role="status">در حال دریافت خلاصهٔ حساب…</p>}><DashboardOverview /></Suspense></ContentBoundary>
 
       <section className={d.services} aria-labelledby="services-heading">
         <div className={d.sectionHeading}>
